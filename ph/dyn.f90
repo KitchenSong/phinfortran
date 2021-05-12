@@ -22,6 +22,7 @@ real(kind=8),allocatable :: kabs(:)
 complex(kind=8),allocatable :: dynmat(:,:,:),dynmat_g(:,:,:)
 complex(kind=8),allocatable :: matmat(:,:) 
 real(kind=8),allocatable    :: omega(:,:)
+real(kind=8),allocatable    :: pr(:,:)
 complex(kind=8),allocatable :: evs(:,:)
 real(kind=8)    :: rws(124,3),rd(124)
 real(kind=8)    :: gmax,alpha,geg,exp_g
@@ -84,6 +85,7 @@ end if
 allocate(dynmat(nk,natm_sc*3,natm_sc*3))
 allocate(dynmat_g(nk,natm_sc*3,natm_sc*3))
 allocate(omega(nk,natm_sc*3))
+allocate(pr(nk,natm_sc*3))
 allocate(evs(natm_sc*3,natm_sc*3))
 
 
@@ -271,6 +273,8 @@ spectral_proj = 0.0d0
 
 open(unit=4,file="eigen.dat",status="UNKNOWN",action="write")
 
+open(unit=44,file="pr.dat",status="UNKNOWN",action="write")
+
 
 do ik = 1,nk
     matmat = (dynmat(ik,:,:)+dble(ipolar)*dynmat_g(ik,:,:)) &
@@ -282,6 +286,10 @@ do ik = 1,nk
         call write_evs_avg(ik,evs,kps(ik,:))
     end if
     omega(ik,:) = real(sqrt(abs(omega(ik,:))))
+    ! participation ratio 
+    do ib = 1,natm_sc*3
+        pr(ik,ib) = participation(evs(:,ib)) 
+    end do
     
     do ib = 1,natm_sc*3
         weightk(:,:,:) = 0.0
@@ -312,13 +320,16 @@ do ik = 1,nk
             end do
         end do
         write(4,2000,advance="no") omega(ik,ib)
+        write(44,2000,advance="no") pr(ik,ib)
     end do
     WRITE(4,"(A)",advance="yes") " "
+    WRITE(44,"(A)",advance="yes") " "
     write(*,140) dble(ik)/dble(nk)*100.0d0,'%'
 end do
 2000 format(1f10.5)
 140 format(F8.2,A)
 close(4)
+close(44)
 
 
 allocate(datamesh((nk)*nz_sc+1,ne))

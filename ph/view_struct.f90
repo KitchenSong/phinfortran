@@ -25,7 +25,7 @@ use util
 
 implicit none
 
-integer(kind=4) :: i,j,k,counts,iat,ii,iii,ilay
+integer(kind=4) :: i,j,k,counts,iat,ii,iii,ilay,idx
 real(kind=8) :: distz,randval 
 integer(kind=4) :: nmix
 
@@ -72,7 +72,9 @@ end do
 counts = 1
 if (mass_read.ne.0) then
     open(23,file='mass_profile.dat',status='old',action='read')
+    read(23,*) idx
 end if
+
 
 do i = 1,nx_sc
     do j = 1,ny_sc
@@ -102,7 +104,8 @@ do i = 1,nx_sc
                         end if
                     end do 
                else
-                   read(23,*) mass_sc(counts+iat-1)
+                   read(23,*) idx
+                   mass_sc(counts+iat-1) = mass_type(idx)
                end if
                ilay = nint(pos_sc(counts+iat-1,3)/(az/dble(natm)))+1
                layern(ilay) = layern(ilay) + 1

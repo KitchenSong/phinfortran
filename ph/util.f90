@@ -116,6 +116,31 @@ function hermitian(A) result(B)
 
 end function hermitian
 
+function participation(A) result(B)
+
+    implicit none
+
+    complex(kind=8) :: A(:)
+    integer(kind=4) :: n,i,j
+    real(kind=8)    :: B
+    complex(kind=8) :: C,D
+
+    n = size(A,1)
+    C = 0.0d0
+    D = 0.0d0
+
+    do i = 1,n/3
+        C = C + dot_product(A(3*(i-1)+1:3*i),A(3*(i-1)+1:3*i))
+        D = D + dot_product(A(3*(i-1)+1:3*i),A(3*(i-1)+1:3*i))**2
+    end do
+    C = C**2
+    D = D* n/3
+    B = C/D
+
+   
+
+end function participation
+
 
 
 
