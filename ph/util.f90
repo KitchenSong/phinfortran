@@ -138,8 +138,20 @@ function participation(A) result(B)
     B = C/D
 
    
-
 end function participation
+
+function taumn(Temp,taum,taun,wm,wn) result(tmn)
+    
+    implicit none
+
+    real(kind=8) :: temp,tmn,taum,taun,wm,wn
+
+    tmn = (wm+wn)**2/4/wm/wn*(taum+taun)/((taum+taun)**2+(wm-wn)**2)+&
+        (wm-wn)**2/4/wm/wn*(taum+taun)/((taum+taun)**2+(wm+wn)**2)
+
+
+
+end function
 
 
 

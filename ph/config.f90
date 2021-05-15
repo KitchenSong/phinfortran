@@ -35,11 +35,12 @@ real(kind=8)     :: mass_defect(100)
 real(kind=8),allocatable  :: mass_d(:)
 integer(kind=4)  :: perioda(100),periodb(100),defecta(100),defectb(100)
 integer(kind=4),allocatable  :: prda(:),prdb(:)
-integer(kind=4)  :: mass_read
+integer(kind=4)  :: mass_read,unfold
+real(kind=8)     :: tau
 
 
 
-namelist/configlist/sigma,filename_input,az,sl,nxy,mix,emin,emax,ne,ipolar,nk,randsd,verbose,dos,ndosx,ndosy,ndosz,mass_species,nspecies,perioda,periodb,defecta,defectb,mass_defect,mass_read
+namelist/configlist/sigma,filename_input,az,sl,nxy,mix,emin,emax,ne,ipolar,nk,randsd,verbose,dos,ndosx,ndosy,ndosz,mass_species,nspecies,perioda,periodb,defecta,defectb,mass_defect,mass_read,unfold,tau
 contains
     
 subroutine load_configure()
@@ -54,6 +55,7 @@ character(len=30) :: label
 real(kind=8)   :: vol,fctemp
 integer(kind=4) :: counts
 
+unfold = 0
 ne = 10
 emax = 10
 emin = 0
@@ -72,6 +74,7 @@ defecta=0
 defectb=0
 mass_defect=0
 mass_read=0
+tau = 0.1 ! Linewidth in unit of THz = 2*hbar/lifetime
 
 open(1,file="config",status="old")
 read(1,nml=configlist)

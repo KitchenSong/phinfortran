@@ -115,6 +115,7 @@ do i = 1,nx_sc
         end do
     end do
 end do
+
 close(23)
 open(unit=1,file="pos_sc.dat",status="UNKNOWN",action="write")
 do i = 1,size(pos_sc,1)
