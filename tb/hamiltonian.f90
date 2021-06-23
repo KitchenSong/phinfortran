@@ -25,9 +25,7 @@ contains
     end if
     end function get_principal_number
  
-    function V_term(i,j,n1,n2,vtype,dist_ij,V,r_d,nspecies)
-
-    use param ,  only: Vn
+    function V_term(i,j,n1,n2,vtype,dist_ij,V,Vn,r_d,nspecies)
 
     implicit none
     ! physical constants
@@ -36,6 +34,7 @@ contains
     integer(kind=4)            :: nspecies 
     real(kind=8),intent(in) :: r_d(nspecies,nspecies)
     real(kind=8),intent(in) :: V(nspecies,nspecies,4,4,4)
+    real(kind=8),intent(in) :: Vn(nspecies,nspecies,4,4,4)
     real(kind=8),intent(in)    :: dist_ij
     real(kind=8),parameter :: hbar = 1.0545718d-34
     real(kind=8),parameter :: eV = 1.60217662d-19
@@ -51,7 +50,8 @@ contains
     d0 = r_d(i,j) ! equilibrium distance
     np = Vn(i,j,n1,n2,vtype)
 
-    V_term = V(i,j,n1,n2,vtype)
+    V_term = V(i,j,n1,n2,vtype)*(d0/dist_ij/ang)**np
+
     end function
 
     function onsite(i,j,orb1,orb2,V,nspecies)
@@ -72,7 +72,7 @@ contains
     end function onsite
 
     function V_sk(i,j,orb1,orb2,&
-                 r_ij,V,r_d,&
+                 r_ij,V,Vn,r_d,&
                  nspecies)
     
     ! the Slater-Koster transformation
@@ -83,9 +83,9 @@ contains
     integer(kind=4) :: n1,n2
     real(kind=8),intent(in) :: r_ij(3)
     integer(kind=4),intent(in) :: nspecies
-    real(kind=8),intent(in) :: r_d(nspecies)
+    real(kind=8),intent(in) :: r_d(nspecies,nspecies)
     real(kind=8),intent(in) :: V(nspecies,nspecies,4,4,4)
-    real(kind=8)  :: rd
+    real(kind=8),intent(in) :: Vn(nspecies,nspecies,4,4,4)
     real(kind=8)  :: dist_ij
     real(kind=8) :: V_sk    
     real(kind=8) :: l, m, n
@@ -104,310 +104,310 @@ contains
     int_type = trim(adjustl(orb1))//trim(adjustl(orb2))
     select case(int_type)
     case("ss")  
-                V_sk=V_term(i,j,1,1,2,dist_ij,V,r_d,nspecies)
+                V_sk=V_term(i,j,1,1,2,dist_ij,V,Vn,r_d,nspecies)
        ! l = 0 with l = 1
     case("spx") 
-                V_sk=l * V_term(i,j,1,2,2,dist_ij,V,r_d,nspecies)
+                V_sk=l * V_term(i,j,1,2,2,dist_ij,V,Vn,r_d,nspecies)
     case("pxs") 
-                V_sk=-l * V_term(j,i,1,2,2,dist_ij,V,r_d,nspecies)
+                V_sk=-l * V_term(j,i,1,2,2,dist_ij,V,Vn,r_d,nspecies)
     case("spy") 
-                V_sk=  m * V_term(i,j,1,2,2,dist_ij,V,r_d,nspecies)
+                V_sk=  m * V_term(i,j,1,2,2,dist_ij,V,Vn,r_d,nspecies)
     case("pys") 
-                V_sk= -m * V_term(j,i,1,2,2,dist_ij,V,r_d,nspecies)
+                V_sk= -m * V_term(j,i,1,2,2,dist_ij,V,Vn,r_d,nspecies)
     case("spz") 
-                V_sk=  n * V_term(i,j,1,2,2,dist_ij,V,r_d,nspecies)
+                V_sk=  n * V_term(i,j,1,2,2,dist_ij,V,Vn,r_d,nspecies)
     case("pzs") 
-                V_sk=-n * V_term(j,i,1,2,2,dist_ij,V,r_d,nspecies)
+                V_sk=-n * V_term(j,i,1,2,2,dist_ij,V,Vn,r_d,nspecies)
        ! l = 1 with l = 1
     case("pxpx")
-                V_sk= (l**2) * V_term(i,j,2,2,2,dist_ij,V,r_d,nspecies) + &
-                (1 - l**2) * V_term(i,j,2,2,3,dist_ij,V,r_d,nspecies)
+                V_sk= (l**2) * V_term(i,j,2,2,2,dist_ij,V,Vn,r_d,nspecies) + &
+                (1 - l**2) * V_term(i,j,2,2,3,dist_ij,V,Vn,r_d,nspecies)
     case("pypy")
-                V_sk= (m**2) * V_term(i,j,2,2,2,dist_ij,V,r_d,nspecies) + &
-                (1 - m**2) * V_term(i,j,2,2,3,dist_ij,V,r_d,nspecies)
+                V_sk= (m**2) * V_term(i,j,2,2,2,dist_ij,V,Vn,r_d,nspecies) + &
+                (1 - m**2) * V_term(i,j,2,2,3,dist_ij,V,Vn,r_d,nspecies)
     case("pzpz")
-                V_sk= (n**2) * V_term(i,j,2,2,2,dist_ij,V,r_d,nspecies) + &
-                (1 - n**2) * V_term(i,j,2,2,3,dist_ij,V,r_d,nspecies)
+                V_sk= (n**2) * V_term(i,j,2,2,2,dist_ij,V,Vn,r_d,nspecies) + &
+                (1 - n**2) * V_term(i,j,2,2,3,dist_ij,V,Vn,r_d,nspecies)
     case("pxpy")
-                V_sk=l * m * V_term(i,j,2,2,2,dist_ij,V,r_d,nspecies) - &
-                l * m * V_term(i,j,2,2,3,dist_ij,V,r_d,nspecies)
+                V_sk=l * m * V_term(i,j,2,2,2,dist_ij,V,Vn,r_d,nspecies) - &
+                l * m * V_term(i,j,2,2,3,dist_ij,V,Vn,r_d,nspecies)
     case("pypx")
-                V_sk= l * m * V_term(i,j,2,2,2,dist_ij,V,r_d,nspecies) - &
-                l * m * V_term(i,j,2,2,3,dist_ij,V,r_d,nspecies)
+                V_sk= l * m * V_term(i,j,2,2,2,dist_ij,V,Vn,r_d,nspecies) - &
+                l * m * V_term(i,j,2,2,3,dist_ij,V,Vn,r_d,nspecies)
     case("pypz")
-                V_sk= m * n * V_term(i,j,2,2,2,dist_ij,V,r_d,nspecies) - &
-                m * n * V_term(i,j,2,2,3,dist_ij,V,r_d,nspecies)
+                V_sk= m * n * V_term(i,j,2,2,2,dist_ij,V,Vn,r_d,nspecies) - &
+                m * n * V_term(i,j,2,2,3,dist_ij,V,Vn,r_d,nspecies)
     case("pzpy")
-                V_sk=m * n * V_term(i,j,2,2,2,dist_ij,V,r_d,nspecies) - &
-                m * n * V_term(i,j,2,2,3,dist_ij,V,r_d,nspecies)
+                V_sk=m * n * V_term(i,j,2,2,2,dist_ij,V,Vn,r_d,nspecies) - &
+                m * n * V_term(i,j,2,2,3,dist_ij,V,Vn,r_d,nspecies)
     case("pxpz")
-                V_sk=l * n * V_term(i,j,2,2,2,dist_ij,V,r_d,nspecies) - &
-                l * n * V_term(i,j,2,2,3,dist_ij,V,r_d,nspecies)
+                V_sk=l * n * V_term(i,j,2,2,2,dist_ij,V,Vn,r_d,nspecies) - &
+                l * n * V_term(i,j,2,2,3,dist_ij,V,Vn,r_d,nspecies)
     case("pzpx")
-                V_sk=l * n * V_term(i,j,2,2,2,dist_ij,V,r_d,nspecies) - &
-                l * n * V_term(i,j,2,2,3,dist_ij,V,r_d,nspecies)
+                V_sk=l * n * V_term(i,j,2,2,2,dist_ij,V,Vn,r_d,nspecies) - &
+                l * n * V_term(i,j,2,2,3,dist_ij,V,Vn,r_d,nspecies)
        ! l = 0 with l = 2
     case("sdxy") 
-                V_sk=  sqrt(3.0) * (l*m) * V_term(i,j,1,3,2,dist_ij,V,r_d,nspecies)
+                V_sk=  sqrt(3.0) * (l*m) * V_term(i,j,1,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("dxys") 
-                V_sk= sqrt(3.0) * (l*m) * V_term(j,i,1,3,2,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * (l*m) * V_term(j,i,1,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("sdyz") 
-                V_sk= sqrt(3.0) * (m*n) * V_term(i,j,1,3,2,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * (m*n) * V_term(i,j,1,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("dyzs") 
-                V_sk= sqrt(3.0) * (m*n) * V_term(j,i,1,3,2,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * (m*n) * V_term(j,i,1,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("sdxz") 
-                V_sk= sqrt(3.0) * (l*n) * V_term(i,j,1,3,2,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * (l*n) * V_term(i,j,1,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("dxzs") 
-                V_sk= sqrt(3.0) * (l*n) * V_term(j,i,1,3,2,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * (l*n) * V_term(j,i,1,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("sdx2-y2")
-                V_sk= (sqrt(3.0)/2) * (l**2 - m**2) * V_term(i,j,1,3,2,dist_ij,V,r_d,nspecies)
+                V_sk= (sqrt(3.0)/2) * (l**2 - m**2) * V_term(i,j,1,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("dx2-y2s")
-                V_sk=(sqrt(3.0)/2) * (l**2 - m**2) * V_term(j,i,1,3,2,dist_ij,V,r_d,nspecies)
+                V_sk=(sqrt(3.0)/2) * (l**2 - m**2) * V_term(j,i,1,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("sdz2") 
-                V_sk= (n**2 - (l**2 + m**2)/2) * V_term(i,j,1,3,2,dist_ij,V,r_d,nspecies)
+                V_sk= (n**2 - (l**2 + m**2)/2) * V_term(i,j,1,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("dz2s") 
-                V_sk= (n**2 - (l**2 + m**2)/2) * V_term(j,i,1,3,2,dist_ij,V,r_d,nspecies)
+                V_sk= (n**2 - (l**2 + m**2)/2) * V_term(j,i,1,3,2,dist_ij,V,Vn,r_d,nspecies)
        ! l = 1 with l = 2
     case("pxdxy")
-                V_sk= sqrt(3.0) * ((l**2)*m) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) + &
-                m * (1 - 2*(l**2)) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * ((l**2)*m) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                m * (1 - 2*(l**2)) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dxypx")
-                V_sk=  -sqrt(3.0) * ((l**2)*m) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) - &
-                m * (1 - 2*(l**2)) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk=  -sqrt(3.0) * ((l**2)*m) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                m * (1 - 2*(l**2)) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("pxdyz")
-                V_sk= sqrt(3.0) * (l*m*n) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) - &
-                2 * (l*m*n) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * (l*m*n) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                2 * (l*m*n) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dyzpx")
-                V_sk= -sqrt(3.0) * (l*m*n) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) + &
-                2 * (l*m*n) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= -sqrt(3.0) * (l*m*n) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                2 * (l*m*n) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("pxdxz")
-                V_sk= sqrt(3.0) * ((l**2)*n) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) + &
-                n * (1 - 2*(l**2)) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * ((l**2)*n) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                n * (1 - 2*(l**2)) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dxzpx")
-                V_sk=-sqrt(3.0) * ((l**2)*n) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) - &
-                n * (1 - 2*(l**2)) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk=-sqrt(3.0) * ((l**2)*n) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                n * (1 - 2*(l**2)) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
 
     case("pydxy")
-                V_sk= sqrt(3.0) * ((m**2)*l) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) + &
-                l * (1 - 2*(m**2)) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * ((m**2)*l) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                l * (1 - 2*(m**2)) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dxypy")
-                V_sk=  -sqrt(3.0) * ((m**2)*l) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) - &
-                l * (1 - 2*(m**2)) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk=  -sqrt(3.0) * ((m**2)*l) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                l * (1 - 2*(m**2)) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("pydyz")
-                V_sk=  sqrt(3.0) * ((m**2)*n) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) + &
-                n * (1 - 2*(m**2)) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk=  sqrt(3.0) * ((m**2)*n) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                n * (1 - 2*(m**2)) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dyzpy")
-                V_sk=  -sqrt(3.0) * ((m**2)*n) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) - &
-                n * (1 - 2*(m**2)) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk=  -sqrt(3.0) * ((m**2)*n) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                n * (1 - 2*(m**2)) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("pydxz")
-                V_sk=  sqrt(3.0) * (l*m*n) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) - &
-                2 * (l*m*n) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk=  sqrt(3.0) * (l*m*n) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                2 * (l*m*n) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dxzpy")
-                V_sk=  -sqrt(3.0) * (l*m*n) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) + &
-                2 * (l*m*n) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk=  -sqrt(3.0) * (l*m*n) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                2 * (l*m*n) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
 
     case("pzdxy")
-                V_sk=   sqrt(3.0) * (l*m*n) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) - &
-                2 * (l*m*n) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk=   sqrt(3.0) * (l*m*n) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                2 * (l*m*n) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dxypz")
-                V_sk= -sqrt(3.0) * (l*m*n) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) + &
-                2 * (l*m*n) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= -sqrt(3.0) * (l*m*n) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                2 * (l*m*n) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("pzdyz")
-                V_sk= sqrt(3.0) * ((n**2)*m) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) + &
-                m * (1 - 2*(n**2)) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * ((n**2)*m) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                m * (1 - 2*(n**2)) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dyzpz")
-                V_sk= -sqrt(3.0) * ((n**2)*m) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) - &
-                m * (1 - 2*(n**2)) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= -sqrt(3.0) * ((n**2)*m) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                m * (1 - 2*(n**2)) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("pzdxz")
-                V_sk= sqrt(3.0) * ((n**2)*l) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) + &
-                l * (1 - 2*(n**2)) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * ((n**2)*l) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                l * (1 - 2*(n**2)) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dxzpz")
-                V_sk= -sqrt(3.0) * ((n**2)*l) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) - &
-                l * (1 - 2*(n**2)) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= -sqrt(3.0) * ((n**2)*l) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                l * (1 - 2*(n**2)) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
 
     case("pxdx2-y2")
-                V_sk= (sqrt(3.0)/2) * l * (l**2 - m**2) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) + &
-                l * (1 - l**2 + m**2) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= (sqrt(3.0)/2) * l * (l**2 - m**2) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                l * (1 - l**2 + m**2) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dx2-y2px")
-                V_sk=-(sqrt(3.0)/2) * l * (l**2 - m**2) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) - &
-                l * (1 - l**2 + m**2) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk=-(sqrt(3.0)/2) * l * (l**2 - m**2) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                l * (1 - l**2 + m**2) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("pydx2-y2")
-                V_sk=  (sqrt(3.0)/2) * m * (l**2 - m**2) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) - &
-                m * (1 + l**2 - m**2) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk=  (sqrt(3.0)/2) * m * (l**2 - m**2) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                m * (1 + l**2 - m**2) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dx2-y2py")
-                V_sk= -(sqrt(3.0)/2) * m * (l**2 - m**2) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) + &
-                m * (1 + l**2 - m**2) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= -(sqrt(3.0)/2) * m * (l**2 - m**2) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                m * (1 + l**2 - m**2) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("pzdx2-y2")
-                V_sk= (sqrt(3.0)/2) * n * (l**2 - m**2) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) - &
-                n * (l**2 - m**2) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= (sqrt(3.0)/2) * n * (l**2 - m**2) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                n * (l**2 - m**2) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dx2-y2pz")
-                V_sk= -(sqrt(3.0)/2) * n * (l**2 - m**2) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) + &
-                n * (l**2 - m**2) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= -(sqrt(3.0)/2) * n * (l**2 - m**2) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                n * (l**2 - m**2) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
 
     case("pxdz2")
-                V_sk= l * (n**2 - (l**2 + m**2)/2) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) - &
-                sqrt(3.0) * l * (n**2) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= l * (n**2 - (l**2 + m**2)/2) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                sqrt(3.0) * l * (n**2) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dz2px")
-                V_sk= -l * (n**2 - (l**2 + m**2)/2) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) + &
-                sqrt(3.0) * l * (n**2) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= -l * (n**2 - (l**2 + m**2)/2) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                sqrt(3.0) * l * (n**2) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("pydz2")
-                V_sk= m * (n**2 - (l**2 + m**2)/2) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) - &
-                sqrt(3.0) * m * (n**2) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= m * (n**2 - (l**2 + m**2)/2) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                sqrt(3.0) * m * (n**2) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dz2py")
-                V_sk= -m * (n**2 - (l**2 + m**2)/2) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) + &
-                sqrt(3.0) * m * (n**2) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= -m * (n**2 - (l**2 + m**2)/2) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                sqrt(3.0) * m * (n**2) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("pzdz2")
-                V_sk= n * (n**2 - (l**2 + m**2)/2) * V_term(i,j,2,3,2,dist_ij,V,r_d,nspecies) + &
-                sqrt(3.0) * n * (l**2 + m**2) * V_term(i,j,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= n * (n**2 - (l**2 + m**2)/2) * V_term(i,j,2,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                sqrt(3.0) * n * (l**2 + m**2) * V_term(i,j,2,3,3,dist_ij,V,Vn,r_d,nspecies)
     case("dz2pz")
-                V_sk= -n * (n**2 - (l**2 + m**2)/2) * V_term(j,i,2,3,2,dist_ij,V,r_d,nspecies) - &
-                sqrt(3.0) * n * (l**2 + m**2) * V_term(j,i,2,3,3,dist_ij,V,r_d,nspecies)
+                V_sk= -n * (n**2 - (l**2 + m**2)/2) * V_term(j,i,2,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                sqrt(3.0) * n * (l**2 + m**2) * V_term(j,i,2,3,3,dist_ij,V,Vn,r_d,nspecies)
 
        ! l = 2 with l = 2
     case("dxydxy")
-                V_sk=  3 * (l**2) * (m**2) * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) + &
-                (l**2 + m**2 - 4*(l**2)*(m**2)) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) + &
-                (n**2 + (l**2)*(m**2)) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=  3 * (l**2) * (m**2) * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                (l**2 + m**2 - 4*(l**2)*(m**2)) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                (n**2 + (l**2)*(m**2)) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dyzdyz")
-                V_sk=  3 * (m**2) * (n**2) * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) + &
-                (m**2 + n**2 - 4*(m**2)*(n**2)) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) + &
-                (l**2 + (m**2)*(n**2)) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=  3 * (m**2) * (n**2) * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                (m**2 + n**2 - 4*(m**2)*(n**2)) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                (l**2 + (m**2)*(n**2)) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dxzdxz")
-                V_sk=  3 * (l**2) * (n**2) * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) + &
-                (l**2 + n**2 - 4*(l**2)*(n**2)) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) + &
-                (m**2 + (l**2)*(n**2)) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=  3 * (l**2) * (n**2) * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                (l**2 + n**2 - 4*(l**2)*(n**2)) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                (m**2 + (l**2)*(n**2)) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
 
     case("dxydyz")
-                V_sk=   3 * l * (m**2) * n * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) + &
-                l * n * (1 - 4*(m**2)) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) + &
-                l * n * (m**2 - 1) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=   3 * l * (m**2) * n * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                l * n * (1 - 4*(m**2)) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                l * n * (m**2 - 1) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dyzdxy")
-                V_sk=  3 * l * (m**2) * n * V_term(j,i,3,3,2,dist_ij,V,r_d,nspecies) + &
-                l * n * (1 - 4*(m**2)) * V_term(j,i,3,3,3,dist_ij,V,r_d,nspecies) + &
-                l * n * (m**2 - 1) * V_term(j,i,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=  3 * l * (m**2) * n * V_term(j,i,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                l * n * (1 - 4*(m**2)) * V_term(j,i,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                l * n * (m**2 - 1) * V_term(j,i,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dxydxz")
-                V_sk=  3 * m * (l**2) * n * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) + &
-                m * n * (1 - 4*(l**2)) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) + &
-                m * n * (l**2 - 1) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=  3 * m * (l**2) * n * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                m * n * (1 - 4*(l**2)) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                m * n * (l**2 - 1) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dxzdxy")
-                V_sk=  3 * m * (l**2) * n * V_term(j,i,3,3,2,dist_ij,V,r_d,nspecies) + &
-                m * n * (1 - 4*(l**2)) * V_term(j,i,3,3,3,dist_ij,V,r_d,nspecies) + &
-                m * n * (l**2 - 1) * V_term(j,i,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=  3 * m * (l**2) * n * V_term(j,i,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                m * n * (1 - 4*(l**2)) * V_term(j,i,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                m * n * (l**2 - 1) * V_term(j,i,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dyzdxz")
-                V_sk= 3 * m * (n**2) * l * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) + &
-                m * l * (1 - 4*(n**2)) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) + &
-                m * l * (n**2 - 1) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk= 3 * m * (n**2) * l * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                m * l * (1 - 4*(n**2)) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                m * l * (n**2 - 1) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dxzdyz")
-                V_sk= 3 * m * (n**2) * l * V_term(j,i,3,3,2,dist_ij,V,r_d,nspecies) + &
-                m * l * (1 - 4*(n**2)) * V_term(j,i,3,3,3,dist_ij,V,r_d,nspecies) + &
-                m * l * (n**2 - 1) * V_term(j,i,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk= 3 * m * (n**2) * l * V_term(j,i,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                m * l * (1 - 4*(n**2)) * V_term(j,i,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                m * l * (n**2 - 1) * V_term(j,i,3,3,4,dist_ij,V,Vn,r_d,nspecies)
 
     case("dxydx2-y2")
-                V_sk= (3.0/2) * l * m * (l**2 - m**2) * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) + &
-                2 * l * m * (m**2 - l**2) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) + &
-                (1.0/2) * l * m * (l**2 - m**2) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk= (3.0/2) * l * m * (l**2 - m**2) * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                2 * l * m * (m**2 - l**2) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                (1.0/2) * l * m * (l**2 - m**2) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dx2-y2dxy")
-                V_sk=(3.0/2) * l * m * (l**2 - m**2) * V_term(j,i,3,3,2,dist_ij,V,r_d,nspecies) + &
-                2 * l * m * (m**2 - l**2) * V_term(j,i,3,3,3,dist_ij,V,r_d,nspecies) + &
-                (1.0/2) * l * m * (l**2 - m**2) * V_term(j,i,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=(3.0/2) * l * m * (l**2 - m**2) * V_term(j,i,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                2 * l * m * (m**2 - l**2) * V_term(j,i,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                (1.0/2) * l * m * (l**2 - m**2) * V_term(j,i,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dyzdx2-y2")
-                V_sk= (3.0/2) * m * n * (l**2 - m**2) * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) - &
-                m * n * (1 + 2*(l**2 - m**2)) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) + &
-                m * n * (1 + (l**2 - m**2)/2) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk= (3.0/2) * m * n * (l**2 - m**2) * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                m * n * (1 + 2*(l**2 - m**2)) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                m * n * (1 + (l**2 - m**2)/2) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dx2-y2dyz")
-                V_sk=(3.0/2) * m * n * (l**2 - m**2) * V_term(j,i,3,3,2,dist_ij,V,r_d,nspecies) - &
-                m * n * (1 + 2*(l**2 - m**2)) * V_term(j,i,3,3,3,dist_ij,V,r_d,nspecies) + &
-                m * n * (1 + (l**2 - m**2)/2) * V_term(j,i,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=(3.0/2) * m * n * (l**2 - m**2) * V_term(j,i,3,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                m * n * (1 + 2*(l**2 - m**2)) * V_term(j,i,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                m * n * (1 + (l**2 - m**2)/2) * V_term(j,i,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dxzdx2-y2")
-                V_sk= (3.0/2) * l * n * (l**2 - m**2) * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) + &
-                l * n * (1 - 2*(l**2 - m**2)) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) - &
-                l * n * (1 - (l**2 - m**2)/2) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk= (3.0/2) * l * n * (l**2 - m**2) * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                l * n * (1 - 2*(l**2 - m**2)) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) - &
+                l * n * (1 - (l**2 - m**2)/2) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dx2-y2dxz")
-                V_sk= (3.0/2) * l * n * (l**2 - m**2) * V_term(j,i,3,3,2,dist_ij,V,r_d,nspecies) + &
-                l * n * (1 - 2*(l**2 - m**2)) * V_term(j,i,3,3,3,dist_ij,V,r_d,nspecies) - &
-                l * n * (1 - (l**2 - m**2)/2) * V_term(j,i,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk= (3.0/2) * l * n * (l**2 - m**2) * V_term(j,i,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                l * n * (1 - 2*(l**2 - m**2)) * V_term(j,i,3,3,3,dist_ij,V,Vn,r_d,nspecies) - &
+                l * n * (1 - (l**2 - m**2)/2) * V_term(j,i,3,3,4,dist_ij,V,Vn,r_d,nspecies)
 
     case("dxydz2")
-                V_sk= sqrt(3.0) * l * m * (n**2 - (l**2 + m**2)/2) * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) - &
-                (2*sqrt(3.0)) * l * m * (n**2) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) + &
-                (sqrt(3.0)/2) * l * m * (1 + n**2) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * l * m * (n**2 - (l**2 + m**2)/2) * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                (2*sqrt(3.0)) * l * m * (n**2) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                (sqrt(3.0)/2) * l * m * (1 + n**2) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dz2dxy")
-                V_sk= sqrt(3.0) * l * m * (n**2 - (l**2 + m**2)/2) * V_term(j,i,3,3,2,dist_ij,V,r_d,nspecies) - &
-                (2*sqrt(3.0)) * l * m * (n**2) * V_term(j,i,3,3,3,dist_ij,V,r_d,nspecies) + &
-                (sqrt(3.0)/2) * l * m * (1 + n**2) * V_term(j,i,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * l * m * (n**2 - (l**2 + m**2)/2) * V_term(j,i,3,3,2,dist_ij,V,Vn,r_d,nspecies) - &
+                (2*sqrt(3.0)) * l * m * (n**2) * V_term(j,i,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                (sqrt(3.0)/2) * l * m * (1 + n**2) * V_term(j,i,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dyzdz2")
-                V_sk=  sqrt(3.0) * m * n * (n**2 - (l**2 + m**2)/2) * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) + &
-                sqrt(3.0) * m * n * (l**2 + m**2 - n**2) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) - &
-                (sqrt(3.0)/2) * m * n * (l**2 + m**2) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=  sqrt(3.0) * m * n * (n**2 - (l**2 + m**2)/2) * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                sqrt(3.0) * m * n * (l**2 + m**2 - n**2) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) - &
+                (sqrt(3.0)/2) * m * n * (l**2 + m**2) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dz2dyz")
-                V_sk=  sqrt(3.0) * m * n * (n**2 - (l**2 + m**2)/2) * V_term(j,i,3,3,2,dist_ij,V,r_d,nspecies) + &
-                sqrt(3.0) * m * n * (l**2 + m**2 - n**2) * V_term(j,i,3,3,3,dist_ij,V,r_d,nspecies) - &
-                (sqrt(3.0)/2) * m * n * (l**2 + m**2) * V_term(j,i,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=  sqrt(3.0) * m * n * (n**2 - (l**2 + m**2)/2) * V_term(j,i,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                sqrt(3.0) * m * n * (l**2 + m**2 - n**2) * V_term(j,i,3,3,3,dist_ij,V,Vn,r_d,nspecies) - &
+                (sqrt(3.0)/2) * m * n * (l**2 + m**2) * V_term(j,i,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dxzdz2")
-                V_sk= sqrt(3.0) * l * n * (n**2 - (l**2 + m**2)/2) * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) + &
-                sqrt(3.0) * l * n * (l**2 + m**2 - n**2) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) - &
-                (sqrt(3.0)/2) * l * n * (l**2 + m**2) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * l * n * (n**2 - (l**2 + m**2)/2) * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                sqrt(3.0) * l * n * (l**2 + m**2 - n**2) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) - &
+                (sqrt(3.0)/2) * l * n * (l**2 + m**2) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dz2dxz")
-                V_sk=  sqrt(3.0) * l * n * (n**2 - (l**2 + m**2)/2) * V_term(j,i,3,3,2,dist_ij,V,r_d,nspecies) + &
-                sqrt(3.0) * l * n * (l**2 + m**2 - n**2) * V_term(j,i,3,3,3,dist_ij,V,r_d,nspecies) - &
-                (sqrt(3.0)/2) * l * n * (l**2 + m**2) * V_term(j,i,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=  sqrt(3.0) * l * n * (n**2 - (l**2 + m**2)/2) * V_term(j,i,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                sqrt(3.0) * l * n * (l**2 + m**2 - n**2) * V_term(j,i,3,3,3,dist_ij,V,Vn,r_d,nspecies) - &
+                (sqrt(3.0)/2) * l * n * (l**2 + m**2) * V_term(j,i,3,3,4,dist_ij,V,Vn,r_d,nspecies)
 
     case("dx2-y2dx2-y2")
-                V_sk=  (3.0/4) * ((l**2 - m**2)**2) * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) + &
-                (l**2 + m**2 - (l**2 - m**2)**2) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) + &
-                (n**2 + ((l**2 - m**2)**2)/4) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=  (3.0/4) * ((l**2 - m**2)**2) * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                (l**2 + m**2 - (l**2 - m**2)**2) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                (n**2 + ((l**2 - m**2)**2)/4) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dx2-y2dz2")
-                V_sk= (sqrt(3.0)/2) * (l**2 - m**2) * (n**2 - (l**2 + m**2)/2) * V_term(i,j,3,3,2,dist_ij,V,r_d,nspecies) + &
-                sqrt(3.0) * (n**2) * (m**2 - l**2) * V_term(i,j,3,3,3,dist_ij,V,r_d,nspecies) + &
-                (sqrt(3.0)/4) * (1 + n**2) * (l**2 - m**2) * V_term(i,j,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk= (sqrt(3.0)/2) * (l**2 - m**2) * (n**2 - (l**2 + m**2)/2) * V_term(i,j,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                sqrt(3.0) * (n**2) * (m**2 - l**2) * V_term(i,j,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                (sqrt(3.0)/4) * (1 + n**2) * (l**2 - m**2) * V_term(i,j,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dz2dx2-y2")
-                V_sk=  (sqrt(3.0)/2) * (l**2 - m**2) * (n**2 - (l**2 + m**2)/2) * V_term(j,i,3,3,2,dist_ij,V,r_d,nspecies) + &
-                sqrt(3.0) * (n**2) * (m**2 - l**2) * V_term(j,i,3,3,3,dist_ij,V,r_d,nspecies) + &
-                (sqrt(3.0)/4) * (1 + n**2) * (l**2 - m**2) * V_term(j,i,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=  (sqrt(3.0)/2) * (l**2 - m**2) * (n**2 - (l**2 + m**2)/2) * V_term(j,i,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                sqrt(3.0) * (n**2) * (m**2 - l**2) * V_term(j,i,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                (sqrt(3.0)/4) * (1 + n**2) * (l**2 - m**2) * V_term(j,i,3,3,4,dist_ij,V,Vn,r_d,nspecies)
     case("dz2dz2")
-                V_sk=  ((n**2 - (l**2 + m**2)/2)**2) * V_term(j,i,3,3,2,dist_ij,V,r_d,nspecies) + &
-                3 * (n**2) * (l**2 + m**2) * V_term(j,i,3,3,3,dist_ij,V,r_d,nspecies) + &
-                (3.0/4) * ((l**2 + m**2)**2) * V_term(j,i,3,3,4,dist_ij,V,r_d,nspecies)
+                V_sk=  ((n**2 - (l**2 + m**2)/2)**2) * V_term(j,i,3,3,2,dist_ij,V,Vn,r_d,nspecies) + &
+                3 * (n**2) * (l**2 + m**2) * V_term(j,i,3,3,3,dist_ij,V,Vn,r_d,nspecies) + &
+                (3.0/4) * ((l**2 + m**2)**2) * V_term(j,i,3,3,4,dist_ij,V,Vn,r_d,nspecies)
 
        ! level s*
     case("s*s*")
-                V_sk=    V_term(i,j,4,4,2,dist_ij,V,r_d,nspecies)
+                V_sk=    V_term(i,j,4,4,2,dist_ij,V,Vn,r_d,nspecies)
     case("ss*") 
-                V_sk=   V_term(i,j,1,4,2,dist_ij,V,r_d,nspecies)
+                V_sk=   V_term(i,j,1,4,2,dist_ij,V,Vn,r_d,nspecies)
     case("s*s") 
-                V_sk=  V_term(j,i,1,4,2,dist_ij,V,r_d,nspecies)
+                V_sk=  V_term(j,i,1,4,2,dist_ij,V,Vn,r_d,nspecies)
     case("s*px")
-                V_sk=l * V_term(i,j,4,2,2,dist_ij,V,r_d,nspecies)
+                V_sk=l * V_term(i,j,4,2,2,dist_ij,V,Vn,r_d,nspecies)
     case( "pxs*")
-                V_sk=  -l * V_term(j,i,4,2,2,dist_ij,V,r_d,nspecies)
+                V_sk=  -l * V_term(j,i,4,2,2,dist_ij,V,Vn,r_d,nspecies)
     case("s*py")
-                V_sk= m * V_term(i,j,4,2,2,dist_ij,V,r_d,nspecies)
+                V_sk= m * V_term(i,j,4,2,2,dist_ij,V,Vn,r_d,nspecies)
     case("pys*")
-                V_sk=  -m * V_term(j,i,4,2,2,dist_ij,V,r_d,nspecies)
+                V_sk=  -m * V_term(j,i,4,2,2,dist_ij,V,Vn,r_d,nspecies)
     case("s*pz")
-                V_sk=    n * V_term(i,j,4,2,2,dist_ij,V,r_d,nspecies)
+                V_sk=    n * V_term(i,j,4,2,2,dist_ij,V,Vn,r_d,nspecies)
     case("pzs*")
-                V_sk= -n * V_term(j,i,4,2,2,dist_ij,V,r_d,nspecies)
+                V_sk= -n * V_term(j,i,4,2,2,dist_ij,V,Vn,r_d,nspecies)
     case("s*dxy")
-                V_sk= sqrt(3.0) * (l*m) * V_term(i,j,4,3,2,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * (l*m) * V_term(i,j,4,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("dxys*")
-                V_sk= sqrt(3.0) * (l*m) * V_term(j,i,4,3,2,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * (l*m) * V_term(j,i,4,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("s*dyz")
-                V_sk=  sqrt(3.0) * (m*n) * V_term(i,j,4,3,2,dist_ij,V,r_d,nspecies)
+                V_sk=  sqrt(3.0) * (m*n) * V_term(i,j,4,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("dyzs*")
-                V_sk=  sqrt(3.0) * (m*n) * V_term(j,i,4,3,2,dist_ij,V,r_d,nspecies)
+                V_sk=  sqrt(3.0) * (m*n) * V_term(j,i,4,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("s*dxz")
-                V_sk= sqrt(3.0) * (l*n) * V_term(i,j,4,3,2,dist_ij,V,r_d,nspecies)
+                V_sk= sqrt(3.0) * (l*n) * V_term(i,j,4,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("dxzs*")
-                V_sk=  sqrt(3.0) * (l*n) * V_term(j,i,4,3,2,dist_ij,V,r_d,nspecies)
+                V_sk=  sqrt(3.0) * (l*n) * V_term(j,i,4,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("s*dx2-y2")
-                V_sk=  (sqrt(3.0)/2) * (l**2 - m**2) * V_term(i,j,4,3,2,dist_ij,V,r_d,nspecies)
+                V_sk=  (sqrt(3.0)/2) * (l**2 - m**2) * V_term(i,j,4,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("dx2-y2s*")
-                V_sk=  (sqrt(3.0)/2) * (l**2 - m**2) * V_term(j,i,4,3,2,dist_ij,V,r_d,nspecies)
+                V_sk=  (sqrt(3.0)/2) * (l**2 - m**2) * V_term(j,i,4,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("s*dz2")
-                V_sk=   (n**2 - (l**2 + m**2)/2) * V_term(i,j,4,3,2,dist_ij,V,r_d,nspecies)
+                V_sk=   (n**2 - (l**2 + m**2)/2) * V_term(i,j,4,3,2,dist_ij,V,Vn,r_d,nspecies)
     case("dz2s*")
-                V_sk= (n**2 - (l**2 + m**2)/2) * V_term(j,i,4,3,2,dist_ij,V,r_d,nspecies)
+                V_sk= (n**2 - (l**2 + m**2)/2) * V_term(j,i,4,3,2,dist_ij,V,Vn,r_d,nspecies)
 
     case default
                 V_sk = 0.0
@@ -496,7 +496,7 @@ contains
                                    if (iatm.eq.jatm) then
                                        V_ij = onsite(itype,jtype,iorbit,jorbit,V,nspecies)
                                    else    
-                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,r_d,nspecies)
+                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,Vn,r_d,nspecies)
                                    end if
                                    matrix_ele = matrix_ele + &
                                    exp(i_imag*dot_product(r_ij,kpoint_cart))*V_ij
@@ -621,7 +621,7 @@ contains
                                    if (iatm.eq.jatm) then
                                        V_ij = onsite(itype,jtype,iorbit,jorbit,V,nspecies)
                                    else    
-                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,r_d,nspecies)
+                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,Vn,r_d,nspecies)
                                    end if
                                    mat_ele_core(mm) = mat_ele_core(mm) + &
                                    exp(i_imag*dot_product(r_shift,kpoint_cart))*V_ij
@@ -968,7 +968,7 @@ contains
                                    if (iatm.eq.jatm) then
                                        V_ij = onsite(itype,jtype,iorbit,jorbit,V,nspecies)
                                    else    
-                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,r_d,nspecies)
+                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,Vn,r_d,nspecies)
                                    end if
                                    matrix_ele = matrix_ele + &
                                    exp(i_imag*dot_product(r_ij,kpoint_cart))*V_ij
@@ -1046,7 +1046,7 @@ contains
                                    if (iatm.eq.jatm) then
                                        V_ij = onsite(itype,jtype,iorbit,jorbit,V,nspecies)
                                    else    
-                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,r_d,nspecies)
+                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,Vn,r_d,nspecies)
                                    end if
                                    matrix_ele = matrix_ele + &
                                    exp(i_imag*dot_product(r_ij,k_uc_cart))*V_ij
@@ -1126,7 +1126,7 @@ contains
                                    if (iatm.eq.jatm) then
                                        V_ij = onsite(itype,jtype,iorbit,jorbit,V,nspecies)
                                    else    
-                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,r_d,nspecies)
+                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,Vn,r_d,nspecies)
                                    end if
                                    matrix_ele = matrix_ele + &
                                    exp(i_imag*dot_product(r_ij,k_uc_cart))*V_ij
@@ -1211,7 +1211,7 @@ contains
                                    if (iatm.eq.jatm) then
                                        V_ij = onsite(itype,jtype,iorbit,jorbit,V,nspecies)
                                    else    
-                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,r_d,nspecies)
+                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,Vn,r_d,nspecies)
                                    end if
                                    matrix_ele = matrix_ele + &
                                    exp(i_imag*dot_product(r_ij,k_uc_cart))*V_ij
@@ -1290,7 +1290,7 @@ contains
                                        if (iatm.eq.jatm) then
                                            V_ij = onsite(itype,jtype,iorbit,jorbit,V,nspecies)
                                        else    
-                                           V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,r_d,nspecies)
+                                           V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,Vn,r_d,nspecies)
                                        end if
                                        matrix_ele = matrix_ele + &
                                        exp(i_imag*dot_product(r_ij,kpoint_cart))*V_ij&
@@ -1431,7 +1431,7 @@ contains
                                    if (iatm.eq.jatm) then
                                        V_ij = onsite(itype,jtype,iorbit,jorbit,V,nspecies)
                                    else    
-                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,r_d,nspecies)
+                                       V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,Vn,r_d,nspecies)
                                    end if
                                    matrix_ele = matrix_ele + &
                                    exp(i_imag*dot_product(r_ij,kpoint_cart))*V_ij
@@ -1509,7 +1509,7 @@ contains
                                        if (iatm.eq.jatm) then
                                            V_ij = onsite(itype,jtype,iorbit,jorbit,V,nspecies)
                                        else    
-                                           V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,r_d,nspecies)
+                                           V_ij = V_sk(itype,jtype,iorbit,jorbit,r_ij,V,Vn,r_d,nspecies)
                                        end if
                                        matrix_ele = matrix_ele + &
                                        exp(i_imag*dot_product(r_ij,kpoint_cart))*V_ij&

@@ -25,7 +25,8 @@ contains
 
     integer(kind=4) :: ios, temp(3), tmp(2)
     integer(kind=4) :: i, j, line, n
-    real(kind=8)    :: tempp(5)
+    real(kind=8)    :: temppp(5)
+    real(kind=8)    :: tempp(4)
     character(len=300) :: buffer
 
    
@@ -86,13 +87,9 @@ contains
                 if (int(tempp(1)).eq.5) then
                     V(i,i,4,4,int(tempp(3)+1)) =&
                 tempp(4)
-                     Vn(i,i,4,4,int(tempp(3)+1)) =&
-                tempp(5)
                 else
                     V(i,i,int(tempp(1)+1),int(tempp(2)+1),int(tempp(3)+1)) =&
                 tempp(4)
-                    Vn(i,i,int(tempp(1)+1),int(tempp(2)+1),int(tempp(3)+1)) =&
-                tempp(5)
                 end if
             end do 
             read(1, '(A)', iostat=ios) buffer
@@ -136,23 +133,33 @@ contains
         read(1, '(A)', iostat=ios) buffer
         read(1, *, iostat=ios) tmp
         do j = 1, hop_num(tmp(1)+1,tmp(2)+1)
-            read(1, *, iostat=ios) tempp
-            if ((int(tempp(1)).eq.5).and.(int(tempp(2)).ne.5)) then
-                V(tmp(1)+1,tmp(2)+1,4,int(tempp(2)+1),int(tempp(3)+2))&
-            = tempp(4)
-            else if ((int(tempp(1)).ne.5).and.(int(tempp(2)).eq.5)) then
-                V(tmp(1)+1,tmp(2)+1,int(tempp(1)+1),4,int(tempp(3)+2))&
-            = tempp(4)
-            else if ((int(tempp(1)).eq.5).and.(int(tempp(2)).eq.5)) then
-                V(tmp(1)+1,tmp(2)+1,4,4,int(tempp(3)+2))&
-            = tempp(4)
+            read(1, *, iostat=ios) temppp
+            if ((int(temppp(1)).eq.5).and.(int(temppp(2)).ne.5)) then
+                V(tmp(1)+1,tmp(2)+1,4,int(temppp(2)+1),int(temppp(3)+2))&
+            = temppp(4)
+                Vn(tmp(1)+1,tmp(2)+1,4,int(temppp(2)+1),int(temppp(3)+2))&
+            = temppp(5)
+            else if ((int(temppp(1)).ne.5).and.(int(temppp(2)).eq.5)) then
+                V(tmp(1)+1,tmp(2)+1,int(temppp(1)+1),4,int(temppp(3)+2))&
+            = temppp(4)
+                Vn(tmp(1)+1,tmp(2)+1,int(temppp(1)+1),4,int(temppp(3)+2))&
+            = temppp(5)
+            else if ((int(temppp(1)).eq.5).and.(int(temppp(2)).eq.5)) then
+                V(tmp(1)+1,tmp(2)+1,4,4,int(temppp(3)+2))&
+            = temppp(4)
+                Vn(tmp(1)+1,tmp(2)+1,4,4,int(temppp(3)+2))&
+            = temppp(5)
             else
-                V(tmp(1)+1,tmp(2)+1,int(tempp(1)+1),int(tempp(2)+1),int(tempp(3)+2))&
-            = tempp(4)               
+                V(tmp(1)+1,tmp(2)+1,int(temppp(1)+1),int(temppp(2)+1),int(temppp(3)+2))&
+            = temppp(4)               
+                Vn(tmp(1)+1,tmp(2)+1,int(temppp(1)+1),int(temppp(2)+1),int(temppp(3)+2))&
+            = temppp(5)               
             end if
         end do
         read(1, '(A)', iostat=ios) buffer
     end do
+
+
      
     ! read r_d 
     allocate(r_d(nspecies,nspecies))
