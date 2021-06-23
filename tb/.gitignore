@@ -1,0 +1,6 @@
+# compiled source
+*.o
+# mods
+*.mod
+# executable
+infortran
