@@ -1,0 +1,54 @@
+&configlist
+ k_trans_mesh(:)=7 7 1
+ filename_input_uc="trans_input_uc.fdf" 
+ filename_input = "trans_input.fdf" 
+ filename_sandwich = "sandwich_fc.bin"
+ filename_left_lead = "left_fc.bin"
+ filename_right_lead = "left_fc.bin"
+ left_primitive_cell_input="pc1.fdf"
+ right_primitive_cell_input="pc1.fdf"
+ n_fc_uc_x = 1 
+ n_fc_uc_y = 1
+ n_fc_uc_z = 1
+ nz = 8
+ nthick = 16
+ r_cutoff = 8.3d0 
+ ne = 61 !0
+ emin = 0.001
+ emax = 15.5
+ qe_fc = 1
+ flfrc = 'Si444.fc'
+ t_left = 300.0d0
+ t_right = 300.0d0
+ buttiker = 0
+ lifetime = 0
+ update_nbr = 1
+&end
+&setup
+ period_left = 16
+ period_right = 16
+ buffer_left = 16
+ buffer_right = 16
+&end
+&convergelist
+ convergence = 1.17d-14 
+ eta = 1.0d-8 !
+ eta0 = 1.0e-9
+ lambda_eta = 5.0d-3
+&end
+&unfolding
+ n_bloch_x = 2
+ n_bloch_y = 2
+ circular_flag = 0
+&end
+&kpath
+ path_mode = 2
+ kpath_file = "kpoint.dat_LXKnew"
+ side = 'l'
+ az1 = 5.52796263
+ crystal = 1
+&end
+&saving
+ output_dir = 'output'
+ verbosity = 0
+&end
