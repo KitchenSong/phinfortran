@@ -237,7 +237,7 @@ contains
         gloo_adv =circular_g(Es0,e1,alpha,&
                  beta,convergence,&
                  nl,n_bloch_y,n_bloch_x,reci_uc_l(2,:),latvec_uc_l(2,:),&
-                        reci_uc_l(1,:),latvec_uc_l(1,:)) 
+                 reci_uc_l(1,:),latvec_uc_l(1,:)) 
     end if
     sigmal_adv =matmul(matmul(Ham_l_i_o,gloo_adv),&
                                     Ham_l_o_i)
@@ -267,7 +267,7 @@ contains
         gloo_plus =circular_g(Es0,e1,alpha,&
                  beta,convergence,&
                  nl,n_bloch_y,n_bloch_x,reci_uc_l(2,:),latvec_uc_l(2,:),&
-                        reci_uc_l(1,:),latvec_uc_l(1,:)) 
+                 reci_uc_l(1,:),latvec_uc_l(1,:)) 
     end if
     ! Right surface green function 
     deallocate(Es0,e1,es,alpha,beta,ive)

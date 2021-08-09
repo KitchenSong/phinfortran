@@ -1520,6 +1520,12 @@ contains
         call write_specular(E,nn,tlr,k_xyz_L_ret,k_xyz_R_adv,&
                             k_xyz_L_ret_pc,k_xyz_R_adv_pc,&
                             vel_xyz_L_ret_pc,vel_xyz_R_adv_pc,'tlr')
+        call write_md(E,nn,trl,rll,k_xyz_R_ret,k_xyz_L_ret,k_xyz_L_adv,&
+                            k_xyz_R_ret_pc,k_xyz_L_ret_pc,k_xyz_L_adv_pc,&
+                            vel_xyz_R_ret_pc,vel_xyz_L_ret_pc,vel_xyz_L_adv_pc,'mdl')
+        call write_md(E,nn,tlr,rrr,k_xyz_L_ret,k_xyz_R_ret,k_xyz_R_adv,&
+                            k_xyz_L_ret_pc,k_xyz_R_ret_pc,k_xyz_R_adv_pc,&
+                            vel_xyz_L_ret_pc,vel_xyz_R_ret_pc,vel_xyz_R_adv_pc,'mdr') 
 
     if (verbosity .eq. 1) then
         call write_md2md(E,nn,tlr,k_xyz_L_ret,k_xyz_R_adv,&
