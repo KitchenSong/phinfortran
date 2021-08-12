@@ -1339,7 +1339,7 @@ contains
       norb-n_buffer_r-nr))-&
       matmul(matmul(Ham(norb-n_buffer_r-nr+1:&
       norb-n_buffer_r,norb-n_buffer_r-2*nr+1:&
-      norb-n_buffer_r-nr),grm),&
+      norb-n_buffer_r-nr),dconjg(transpose(grm))),&
       Ham(norb-n_buffer_r-2*nr+1:&
       norb-n_buffer_r-nr,norb-n_buffer_r-nr+1:&
       norb-n_buffer_r))
