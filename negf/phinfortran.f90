@@ -924,7 +924,6 @@ program phinfortran
         stop
     end if
 
-
     if (path_mode .ne. 6) then
         if (qe_fc.eq.0) then
             do ik = 1,nkcore
@@ -1145,7 +1144,7 @@ program phinfortran
                 if (tdiff .lt. 1.0d-4) exit outer
 
              end do outer
-         else 
+        else 
             ! qe force constant
             ! temperature difference compared with last loop
             tdiff = 100.0d0
@@ -1200,9 +1199,11 @@ program phinfortran
                                               sl_adv,sr_ret,Egrid,&
                                               Haml,Hamr,&
                                               Hamlv,Hamrv)
-                        !call surface_ldos_mpi(ie,ik,&
-                        !                   gl_adv,gr_ret,&
-                        !                   surface_dos_l_reduce,surface_dos_r_reduce,Egrid)
+                        if (path_mode.eq.3) then
+                            call surface_ldos_mpi(ie,ik,&
+                                             gl_adv,gr_ret,&
+                                             surface_dos_l_reduce,surface_dos_r_reduce,Egrid)
+                        end if
 
                         !call G_block_mpi(ie,ik,Ham,norb,&
                         !           gl_adv,gr_ret,&
@@ -1317,7 +1318,11 @@ program phinfortran
                      call write_temperature(temperature_i,temperature_ph)
 
                  end if
-
+                 if ((myid.eq.0) .and. (path_mode.eq.3)) then
+                     ! write sdos
+                     call write_surface_ldos(surface_dos_l,surface_dos_r) 
+                 end if
+          
                  call MPI_BARRIER(MPI_COMM_WORLD,ierr) 
                  ! broadcast to other cores
                  call MPI_BCAST(temperature_i,nlayer,MPI_DOUBLE_PRECISION,0,&
@@ -1326,10 +1331,9 @@ program phinfortran
                       MPI_COMM_WORLD, ierr)
                  ! update scattering rate
                  call set_sigma_bp_w(temperature_i)
-
-
+              
                 if (tdiff .lt. 1.0d-4) exit outerr
-
+      
              end do outerr
 !        else
 !            intstep = ne/10
@@ -1424,7 +1428,7 @@ program phinfortran
 !                 ! broadcast to other cores
         end if
     else
-        do ik = 1,nkcore
+        do ik = 1,nkcore 
             call gen_dyn_mpi(1,ik,force_constant,Ham,eigvec,eig,norb,&
                  positions_sc,positions,latvec,idx_mat_red,dist_mat_red,&
                  num_mat)
