@@ -383,6 +383,8 @@ contains
     real(kind=8) :: k_xyz_R_ret_pc(nr,3),k_xyz_R_adv_pc(nr,3)
     real(kind=8) :: vel_xyz_L_ret_pc(nl,3),vel_xyz_L_adv_pc(nl,3)
     real(kind=8) :: vel_xyz_R_ret_pc(nr,3),vel_xyz_R_adv_pc(nr,3)
+    integer(kind=4) :: branch_idx_L_adv_pc(nl),branch_idx_R_ret_pc(nr)
+    integer(kind=4) :: branch_idx_L_ret_pc(nl),branch_idx_R_adv_pc(nr)
     integer(kind=4),allocatable :: deg_list(:),deg_all(:),temp(:)
     integer(kind=4) :: start, next_start, case_no, ndeg
 
@@ -608,7 +610,9 @@ contains
     k_xyz_L_adv_pc = 100.0
     k_xyz_R_ret_pc = 100.0
     vel_xyz_L_adv_pc = 0.0d0
-    vel_xyz_R_adv_pc = 0.0d0
+    vel_xyz_R_ret_pc = 0.0d0
+    branch_idx_L_adv_pc = 1
+    branch_idx_R_ret_pc = 1
     weightL_adv = 0.0d0
     weightR_ret = 0.0d0
 
@@ -697,7 +701,8 @@ contains
                           reci_uc_l,recivec_pc_l,&
                           force_constant_pc_l,&
                           pos_pc_l_fc_sc,positions_pc_l,&
-                          natoms_uc_l,natoms_pc_l,mass_uc_l)
+                          natoms_uc_l,natoms_pc_l,mass_uc_l,&
+                          branch_idx_L_adv_pc(i))
 
             k_xyz_L_adv_pc(i,:) = find_min_dist(kpc_unfold_l(1:kpc_deg_num_l,:),kpc_deg_num_l)
             vel_xyz_L_adv_pc(i,:) = vpc_unfold_l(1,:)
@@ -896,6 +901,8 @@ contains
     k_xyz_R_adv_pc = 100.0
     vel_xyz_L_ret_pc = 0.0d0
     vel_xyz_R_adv_pc = 0.0d0
+    branch_idx_L_ret_pc = 1
+    branch_idx_R_adv_pc = 1
     weightL_ret = 0.0d0
     weightR_adv = 0.0d0
 
@@ -960,7 +967,8 @@ contains
                           reci_uc_l,recivec_pc_l,&
                           force_constant_pc_l,&
                           pos_pc_l_fc_sc,positions_pc_l,&
-                          natoms_uc_l,natoms_pc_l,mass_uc_l)
+                          natoms_uc_l,natoms_pc_l,mass_uc_l,&
+                          branch_idx_L_ret_pc(i))
 
             k_xyz_L_ret_pc(i,:) = find_min_dist(kpc_unfold_l(1:kpc_deg_num_l,:),kpc_deg_num_l)
 !            write(*,*) sqrt(dot_product(k_xyz_L_ret_pc(i,:),k_xyz_L_ret_pc(i,:)))
@@ -1221,7 +1229,8 @@ contains
                           reci_uc_r,recivec_pc_r,&
                           force_constant_pc_r,&
                           pos_pc_r_fc_sc,positions_pc_r,&
-                          natoms_uc_r,natoms_pc_r,mass_uc_r)
+                          natoms_uc_r,natoms_pc_r,mass_uc_r,&
+                          branch_idx_R_ret_pc(i))
 
             k_xyz_R_ret_pc(i,:) = find_min_dist(kpc_unfold_r(1:kpc_deg_num_r,:),kpc_deg_num_r)
             vel_xyz_R_ret_pc(i,:) = vpc_unfold_r(1,:)
@@ -1459,7 +1468,8 @@ contains
                           reci_uc_r,recivec_pc_r,&
                           force_constant_pc_r,&
                           pos_pc_r_fc_sc,positions_pc_r,&
-                          natoms_uc_r,natoms_pc_r,mass_uc_r)
+                          natoms_uc_r,natoms_pc_r,mass_uc_r,&
+                          branch_idx_R_adv_pc(i))
 
             k_xyz_R_adv_pc(i,:) = find_min_dist(kpc_unfold_r(1:kpc_deg_num_r,:),kpc_deg_num_r)
             vel_xyz_R_adv_pc(i,:) = vpc_unfold_r(1,:)
@@ -1664,10 +1674,12 @@ contains
 
         call write_md(sqrt(E),nn,trl,rll,k_xyz_R_ret,k_xyz_L_ret,k_xyz_L_adv,&
                              k_xyz_R_ret_pc,k_xyz_L_ret_pc,k_xyz_L_adv_pc,&
-                             vel_xyz_R_ret_pc,vel_xyz_L_ret_pc,vel_xyz_L_adv_pc,'mdl')
+                             vel_xyz_R_ret_pc,vel_xyz_L_ret_pc,vel_xyz_L_adv_pc,'mdl',&
+                             branch_idx_L_adv_pc)
         call write_md(sqrt(E),nn,tlr,rrr,k_xyz_L_ret,k_xyz_R_ret,k_xyz_R_adv,&
-                            k_xyz_L_ret_pc,k_xyz_R_ret_pc,k_xyz_R_adv_pc,&
-                            vel_xyz_L_ret_pc,vel_xyz_R_ret_pc,vel_xyz_R_adv_pc,'mdr') ! rightoleft
+                             k_xyz_L_ret_pc,k_xyz_R_ret_pc,k_xyz_R_adv_pc,&
+                             vel_xyz_L_ret_pc,vel_xyz_R_ret_pc,vel_xyz_R_adv_pc,'mdr',&
+                             branch_idx_R_adv_pc) ! rightoleft
 
 
 
@@ -1800,6 +1812,8 @@ contains
     real(kind=8) :: k_xyz_R_ret_pc(nr,3),k_xyz_R_adv_pc(nr,3)
     real(kind=8) :: vel_xyz_L_ret_pc(nl,3),vel_xyz_L_adv_pc(nl,3)
     real(kind=8) :: vel_xyz_R_ret_pc(nr,3),vel_xyz_R_adv_pc(nr,3)
+    integer(kind=4) :: branch_idx_L_adv_pc(nl),branch_idx_R_ret_pc(nr)
+    integer(kind=4) :: branch_idx_L_ret_pc(nl),branch_idx_R_adv_pc(nr)
     integer(kind=4),allocatable :: deg_list(:),deg_all(:),temp(:)
     integer(kind=4) :: start, next_start, case_no, ndeg
 
@@ -2028,7 +2042,9 @@ contains
     k_xyz_L_adv_pc = 100.0
     k_xyz_R_ret_pc = 100.0
     vel_xyz_L_adv_pc = 0.0d0
-    vel_xyz_R_adv_pc = 0.0d0
+    vel_xyz_R_ret_pc = 0.0d0
+    branch_idx_L_adv_pc = 1
+    branch_idx_R_ret_pc = 1 
     weightL_adv = 0.0d0
     weightR_ret = 0.0d0
 
@@ -2117,7 +2133,8 @@ contains
                           reci_uc_l,recivec_pc_l,&
                           force_constant_pc_l,&
                           pos_pc_l_fc_sc,positions_pc_l,&
-                          natoms_uc_l,natoms_pc_l,mass_uc_l)
+                          natoms_uc_l,natoms_pc_l,mass_uc_l,&
+                          branch_idx_L_adv_pc(i))
 
             k_xyz_L_adv_pc(i,:) = find_min_dist(kpc_unfold_l(1:kpc_deg_num_l,:),kpc_deg_num_l)
             vel_xyz_L_adv_pc(i,:) = vpc_unfold_l(1,:)
@@ -2314,6 +2331,8 @@ contains
     k_xyz_R_adv_pc = 100.0
     vel_xyz_L_ret_pc = 0.0d0
     vel_xyz_R_adv_pc = 0.0d0
+    branch_idx_L_ret_pc = 1
+    branch_idx_R_adv_pc = 1
     weightL_ret = 0.0d0
     weightR_adv = 0.0d0
 
@@ -2378,7 +2397,8 @@ contains
                           reci_uc_l,recivec_pc_l,&
                           force_constant_pc_l,&
                           pos_pc_l_fc_sc,positions_pc_l,&
-                          natoms_uc_l,natoms_pc_l,mass_uc_l)
+                          natoms_uc_l,natoms_pc_l,mass_uc_l,&
+                          branch_idx_L_ret_pc(i))
 
             k_xyz_L_ret_pc(i,:) = find_min_dist(kpc_unfold_l(1:kpc_deg_num_l,:),kpc_deg_num_l)
 !            write(*,*) sqrt(dot_product(k_xyz_L_ret_pc(i,:),k_xyz_L_ret_pc(i,:)))
@@ -2642,7 +2662,8 @@ contains
                           reci_uc_r,recivec_pc_r,&
                           force_constant_pc_r,&
                           pos_pc_r_fc_sc,positions_pc_r,&
-                          natoms_uc_r,natoms_pc_r,mass_uc_r)
+                          natoms_uc_r,natoms_pc_r,mass_uc_r,&
+                          branch_idx_R_ret_pc(i))
 
             k_xyz_R_ret_pc(i,:) = find_min_dist(kpc_unfold_r(1:kpc_deg_num_r,:),kpc_deg_num_r)
             vel_xyz_R_ret_pc(i,:) = vpc_unfold_r(1,:)
@@ -2882,7 +2903,8 @@ contains
                           reci_uc_r,recivec_pc_r,&
                           force_constant_pc_r,&
                           pos_pc_r_fc_sc,positions_pc_r,&
-                          natoms_uc_r,natoms_pc_r,mass_uc_r)
+                          natoms_uc_r,natoms_pc_r,mass_uc_r,&
+                          branch_idx_R_adv_pc(i))
 
             k_xyz_R_adv_pc(i,:) = find_min_dist(kpc_unfold_r(1:kpc_deg_num_r,:),kpc_deg_num_r)
             vel_xyz_R_adv_pc(i,:) = vpc_unfold_r(1,:)
@@ -3122,10 +3144,12 @@ contains
                             vel_xyz_L_ret_pc,vel_xyz_L_adv_pc,'left')
         call write_md(sqrt(E),nn,trl,rll,k_xyz_R_ret,k_xyz_L_ret,k_xyz_L_adv,&
                              k_xyz_R_ret_pc,k_xyz_L_ret_pc,k_xyz_L_adv_pc,&
-                             vel_xyz_R_ret_pc,vel_xyz_L_ret_pc,vel_xyz_L_adv_pc,'mdl')
+                             vel_xyz_R_ret_pc,vel_xyz_L_ret_pc,vel_xyz_L_adv_pc,'mdl',&
+                             branch_idx_L_adv_pc)
         call write_md(sqrt(E),nn,tlr,rrr,k_xyz_L_ret,k_xyz_R_ret,k_xyz_R_adv,&
-                            k_xyz_L_ret_pc,k_xyz_R_ret_pc,k_xyz_R_adv_pc,&
-                            vel_xyz_L_ret_pc,vel_xyz_R_ret_pc,vel_xyz_R_adv_pc,'mdr') ! rightoleft
+                             k_xyz_L_ret_pc,k_xyz_R_ret_pc,k_xyz_R_adv_pc,&
+                             vel_xyz_L_ret_pc,vel_xyz_R_ret_pc,vel_xyz_R_adv_pc,'mdr',&
+                             branch_idx_R_adv_pc) ! rightoleft
 
 
 

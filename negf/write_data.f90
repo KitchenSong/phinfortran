@@ -75,7 +75,8 @@ end do
 close(unit=1)
 end subroutine
 
-subroutine write_md(E,mm,t,r,k_ft,k_f,k_b,kp_ft,kp_f,kp_b,v_ft,v_f,v_b,direction)
+subroutine write_md(E,mm,t,r,k_ft,k_f,k_b,kp_ft,kp_f,kp_b,v_ft,v_f,v_b,direction,&
+                    branch_idx_pc)
 
 use config
 use surface
@@ -93,6 +94,7 @@ real(kind=8),intent(in) :: v_f(:,:), v_ft(:,:)
 real(kind=8),intent(in) :: k_b(:,:)
 real(kind=8),intent(in) :: kp_b(:,:)
 real(kind=8),intent(in) :: v_b(:,:)
+integer(kind=4),intent(in) :: branch_idx_pc(:)
 character(len=*) :: direction
 real(kind=8) :: k_diff(3)
 real(kind=8),allocatable :: r_s(:) ! specular part
@@ -162,10 +164,11 @@ do i = 1,n_b
         
         WRITE(1,1000,iostat=ios) count1,E,k_b(i,1),k_b(i,2),k_b(i,3),&
              kp_b(i,1),kp_b(i,2),kp_b(i,3),&
-             v_b(i,1),v_b(i,2),v_b(i,3),r_s(i),r_t(i),t_s(i),t_t(i)
+             v_b(i,1),v_b(i,2),v_b(i,3),r_s(i),r_t(i),t_s(i),t_t(i),&
+             branch_idx_pc(i)
 
 
-        1000 format(1I5,15e20.10)
+        1000 format(1I5,14e20.10,1I5)
     end if
 end do
 

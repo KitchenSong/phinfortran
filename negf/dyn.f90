@@ -664,7 +664,8 @@ contains
                           k_sc_cart,k_uc_cart,ksc,i_deg_pc,&
                           weight,vxyz,force_constant,&
                           pos_pc_fc_sc,pos_pc,&
-                          natoms_uc,natoms_pc,mass_uc)
+                          natoms_uc,natoms_pc,mass_uc,&
+                          branch_idx_pc)
 
     use config
     use util
@@ -687,6 +688,7 @@ contains
     integer(kind=4),intent(out) :: i_deg_pc
     real(kind=8),intent(out) :: weight
     real(kind=8),intent(out) :: vxyz(3)
+    integer(kind=4),intent(out) :: branch_idx_pc
     real(kind=8),intent(in) :: force_constant(:,:)
     real(kind=8),intent(in) :: pos_pc_fc_sc(:,:)
     integer(kind=4),intent(in) :: natoms_uc,natoms_pc 
@@ -738,6 +740,7 @@ contains
         if (abs(Eq-sqrt(abs(eigs(i)))).lt.1.0d-2)then
             vxyz = vels(i,:)
             i_deg_pc = 1
+            branch_idx_pc = i
 
             do j = 1,n_bloch_y
                 do j1 = 1,n_bloch_x
@@ -776,7 +779,8 @@ contains
                           reci_uc,recivec_pc,&
                           force_constant,&
                           pos_pc_fc_sc,pos_pc,&
-                          natoms_uc,natoms_pc,mass_uc)
+                          natoms_uc,natoms_pc,mass_uc,&
+                          branch_idx_pc)
 
     use config
     use util
@@ -804,6 +808,7 @@ contains
     integer(kind=4),intent(out) :: i_deg_pc_tot
     real(kind=8),intent(out) :: kpc_unfold(125,3)
     real(kind=8),intent(out) :: vpc_unfold(125,3)
+    integer(kind=4),intent(out) :: branch_idx_pc
     real(kind=8) :: vxyz(3)
     real(kind=8) :: v_pc(norb_pc,3)
     real(kind=8),intent(in)  :: pos_pc_fc_sc(:,:)
@@ -850,6 +855,7 @@ contains
             if(abs(sqrt(E)-sqrt(abs(eigs_pc(i1)))).lt.1.0d-2)then
                 vxyz = v_pc(i1,:)
                 vpc_unfold(1,:) = vxyz(:)
+                branch_idx_pc = i1
             end if
         end do
     else
@@ -865,7 +871,8 @@ contains
                               k_sc_cart,k_uc_cart,ksc,i_deg_pc,&
                               weight,vxyz,force_constant,&
                               pos_pc_fc_sc,pos_pc,&
-                              natoms_uc,natoms_pc,mass_uc)
+                              natoms_uc,natoms_pc,mass_uc,&
+                              branch_idx_pc)
                         if (i_deg_pc .gt. 0) then
                             i_deg_pc_tot = i_deg_pc + i_deg_pc_tot
                             kpc_unfold(i_deg_pc_tot,:) = kpc(:)
@@ -2452,7 +2459,6 @@ contains
         nscy = 1
         nscz = 1
         
-
         dyn(:,:) = 0.0d0
         eig(:) = 0.0d0
         vec(:,:) = 0.0d0
