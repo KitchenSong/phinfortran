@@ -801,7 +801,7 @@ contains
     real(kind=8),intent(in) :: mass_uc(:)
     real(kind=8)    :: force_constant(:,:) 
     integer(kind=4) :: i1,i2,i3,ibz
-    real(kind=8) :: kpc(3),kpc_ws(3),weight
+    real(kind=8) :: kpc(3),kpc_pc(3),weight
     integer(kind=4) :: i_deg_pc = 0
     integer(kind=4),intent(out) :: i_deg_pc_tot
     real(kind=8),intent(out) :: kpc_unfold(125,3)
@@ -829,7 +829,6 @@ contains
     i_deg_pc_tot = 0
     kpc_unfold(:,:) = 0.0d0
     vpc_unfold(:,:) = 0.0d0
-    kpc_ws = 0.0d0
     weight = 0.0
     vxyz = 0.0d0
     idx_temp = 0
@@ -877,12 +876,11 @@ contains
                       !        natoms_uc,natoms_pc,mass_uc,&
                       !        idx_temp)
                         call gen_dyn_pc_qe_k(kpc,dyn_pc,mass_uc)
-                        call eigen_sorting(dyn_pc,eigs_c,evs_pc) 
-                        eigs_pc = abs(eigs_c)
-                        do i = 1,norb_pc
+                        do i = 1:norb_pc
+                            eigen_sorting(dyn_pc,eigs_c,evs_pc) 
+                            eigs_pc = abs(eigs_c)
                             if(abs(sqrt(E)-sqrt(abs(eigs_pc(i)))).lt.2.0d-1)then 
-                                idx_temp = i
-                                kpc_ws = kpc
+                                branch_idx_pc = i
                                 i_deg_pc = 1
                                 goto 123
                             end if 
@@ -891,18 +889,11 @@ contains
                 end do
             end do
         end do
-123     continue
         if (i_deg_pc .gt. 0) then
-            call group_velocity_pc_qe(norb_pc,&
-                        kpc_ws,dyn_pc,&
-                        force_constant,pos_pc,&
-                        pos_pc_fc_sc,&
-                        eigs_pc,evs_pc,v_pc,mass_uc)
-
             i_deg_pc_tot = i_deg_pc + i_deg_pc_tot
-            kpc_unfold(i_deg_pc_tot,:) = kpc_ws(:)
-            vpc_unfold(i_deg_pc_tot,:) = v_pc(branch_idx_pc,:)
-            branch_idx_pc = idx_temp 
+            kpc_unfold(i_deg_pc_tot,:) = kpc(:)
+            vpc_unfold(i_deg_pc_tot,:) = vxyz(:)
+            branch_idx_pc = idx_temp
         end if 
     end if
 !    if (i_deg_pc_tot .eq.0 )then
@@ -2306,8 +2297,6 @@ contains
     kpath_pt(2,:) = (/0.0d0,0.0d0,0.0d0/)
     kpath_pt(3,:) = (/0.5d0,0.5d0,0.0d0/)
     kpath_pt(1,:) = (/0.808d0,0.0d0,0.0d0/)
-
-    kpath_pt(1,:) = (/-0.30479908020520,0.507998467008678,0.519697007010743/)
     kpath_pt(2,:) = (/0.0d0,0.0d0,0.0d0/)
     kpath_pt(3,:) = (/0.808d0,0.808d0,0.0d0/)
  
@@ -2466,7 +2455,6 @@ contains
     kpath_pt(2,:) = (/0.0d0,0.0d0,0.0d0/)
     kpath_pt(3,:) = (/0.5d0,0.5d0,0.0d0/)
     kpath_pt(1,:) = (/1.616d0,0.0d0,0.0d0/)
- kpath_pt(1,:) = (/-0.30479908020520,0.507998467008678,0.519697007010743/)
     kpath_pt(2,:) = (/0.0d0,0.0d0,0.0d0/)
     kpath_pt(3,:) = (/0.808d0,0.808d0,0.0d0/)
     nkpath(1) = 85

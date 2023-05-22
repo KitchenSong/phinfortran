@@ -628,10 +628,13 @@ function inv(A) result(Ainv)
     end if
     dist_min2 = minval(dist_remain)
 
-    if (abs(dist_min2-dist_min).lt.1.0d-5) then
-        output = 2
-    else if (abs(dist(63)-dist_min) .lt. 1d-5) then
-        output = 1
+
+    if (abs(dist(63)-dist_min) .lt. 1d-3) then
+        if (abs(dist_min2-dist_min).lt.1.0d-3) then
+            output = 2 ! zone boundary of FBZ
+        else
+            output = 1 ! inside FBZ
+        end if
     else
         output = 0
     end if

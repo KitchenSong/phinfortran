@@ -611,8 +611,8 @@ contains
     k_xyz_R_ret_pc = 100.0
     vel_xyz_L_adv_pc = 0.0d0
     vel_xyz_R_ret_pc = 0.0d0
-    branch_idx_L_adv_pc = 1
-    branch_idx_R_ret_pc = 1
+    branch_idx_L_adv_pc = 0
+    branch_idx_R_ret_pc = 0
     weightL_adv = 0.0d0
     weightR_ret = 0.0d0
 
@@ -653,7 +653,6 @@ contains
 
             bz_idx_L_adv(i) = maxloc(weightL_adv(i,:),1)
 !            write(*,*)'maxvalues', maxval(weightL_adv(i,:))
-!            stop
 
             k_xyz_L_adv(i,:) = move_in_ws2(matmul(ksc(:) + &
                                k_shift(maxloc(weightL_adv(i,:),1),:),&
@@ -901,8 +900,8 @@ contains
     k_xyz_R_adv_pc = 100.0
     vel_xyz_L_ret_pc = 0.0d0
     vel_xyz_R_adv_pc = 0.0d0
-    branch_idx_L_ret_pc = 1
-    branch_idx_R_adv_pc = 1
+    branch_idx_L_ret_pc = 0
+    branch_idx_R_adv_pc = 0
     weightL_ret = 0.0d0
     weightR_adv = 0.0d0
 
@@ -2043,8 +2042,8 @@ contains
     k_xyz_R_ret_pc = 100.0
     vel_xyz_L_adv_pc = 0.0d0
     vel_xyz_R_ret_pc = 0.0d0
-    branch_idx_L_adv_pc = 1
-    branch_idx_R_ret_pc = 1 
+    branch_idx_L_adv_pc = 0
+    branch_idx_R_ret_pc = 0 
     weightL_adv = 0.0d0
     weightR_ret = 0.0d0
 
@@ -2331,8 +2330,8 @@ contains
     k_xyz_R_adv_pc = 100.0
     vel_xyz_L_ret_pc = 0.0d0
     vel_xyz_R_adv_pc = 0.0d0
-    branch_idx_L_ret_pc = 1
-    branch_idx_R_adv_pc = 1
+    branch_idx_L_ret_pc = 0
+    branch_idx_R_adv_pc = 0
     weightL_ret = 0.0d0
     weightR_adv = 0.0d0
 

@@ -129,12 +129,11 @@ contains
     real(kind=8)    :: bohr2ang = 0.529177
     integer(kind=4) :: nx_qe,ny_qe,nz_qe
     integer(kind=4) :: alpha,beta,iatm,jatm,idx,jdx,kdx
-    real(kind=8)    :: rws(124,3),rd(124),dr(3)
+    real(kind=8)    :: rws(124,3),rd(124),dr(3),R_uc_xyz(3)
+    real(kind=8)    :: n_uc_ijk(3)
     real(kind=8)    :: rmin,rtemp
     integer(kind=4) :: m1,m2,m3
     integer(kind=4) :: norb 
-
-
     
     open(23,file=trim(adjustl(flfrc)),status='old',action='read')
     read(23,*) ntype,nat,ibrav,celldm
@@ -207,10 +206,10 @@ contains
 
         end do
     end do
-    close(23)
-    if (update_nbr.eq.1) then
-        open(unit=12,file="fc_qe_r.dat",status="UNKNOWN",action="write")
 
+    close(23)
+
+    open(unit=12,file="fc_qe_r.dat",status="UNKNOWN",action="write")
         ! cutoff radius
         do iatm = 1,nat
             do jatm = 1,nat
@@ -221,35 +220,40 @@ contains
                             do m1 = -2,2
                                 do m2 = -2,2
                                     do m3 = -2,2
-                                        dr(:) = pos_qe(jatm,:) - pos_qe(iatm,:) &
-                                        - matmul((/dble(j-1),dble(k-1),dble(l-1)/),&
+                                        R_uc_xyz(:) = - matmul((/dble(j-1),dble(k-1),dble(l-1)/),&
                                         cell_qe)&
                                         + matmul((/dble(m1),dble(m2),dble(m3)/),&
                                         cell_sc_qe)
+                                        dr(:) = pos_qe(jatm,:) - pos_qe(iatm,:) & 
+                                        + R_uc_xyz(:)
                                         rtemp = sqrt(dot_product(dr,dr))
                                         if ( rtemp.lt.rmin) then
+                                            n_uc_ijk = matmul(R_uc_xyz,inv_real(cell_qe))
                                             rmin = rtemp
                                         end if
                                     end do
                                 end do
                             end do
                             write(12,'(10F20.5)') rmin,fc_qe(:,:,iatm,jatm,j,k,l)
-                            if (rmin .gt. r_cutoff ) then
-                                fc_qe(:,:,iatm,jatm,j,k,l) = 0.0d0
+                            if (update_nbr.eq.1) then
+                                if (rmin .gt. r_cutoff ) then
+                                    fc_qe(:,:,iatm,jatm,j,k,l) = 0.0d0
+                                end if
+                            else if (update_nbr.eq.2) then
+                                if ((abs(n_uc_ijk(1)).gt.1.5d0).or.(abs(n_uc_ijk(2)).gt.1.5d0).or.(abs(n_uc_ijk(3)).gt.1.5d0)) then
+                                    fc_qe(:,:,iatm,jatm,j,k,l) = 0.0d0        
+                                end if
                             end if
                         end do
                     end do
                 end do
             end do
         end do
-
-        close(12)
-
-    end if
+    close(12)
 
     ! acoustic sum rule
     do i = 1,3
-        do j = i,3
+        do j = 1,3
             do idx = 1,nat
                 fc_qe(i,j,idx,idx,1,1,1) = -sum(fc_qe(i,j,idx,:,:,:,:))&
                 +fc_qe(i,j,idx,idx,1,1,1)
@@ -257,16 +261,17 @@ contains
         end do
     end do
     ! Invariance under the permutation of indices
-    do i = 1,3
-        do j = 1,i
-            do idx = 1,nat
-               fc_qe(i,j,idx,idx,1,1,1) = fc_qe(j,i,idx,idx,1,1,1)
-            end do
-        end do
-    end do
+    !do i = 1,3
+    !    do j = 1,i
+    !        do idx = 1,nat
+    !            do jdx = idx,nat
+    !                fc_qe(i,j,idx,jdx,1,1,1) = fc_qe(j,i,jdx,idx,1,1,1)
+    !            end do
+    !        end do
+    !    end do
+    !end do
 
     qeph_fc = fc_qe
-
     
     itemp = 1
     do m1 = -2,2

@@ -164,8 +164,8 @@ program phinfortran
         neighborlist(:,:)=0
         nnbrs(:)=0
         ! find neighboring list
-        if (update_nbr.eq.1) then
-            call find_neighbors(neighborlist,nnbrs,pos_all,cell_all,natoms) 
+        if (update_nbr.ne.0) then
+            call find_neighbors(neighborlist,nnbrs,pos_all,cell_all,natoms,cell_qe,idx_all,pos_qe) 
         end if
         
         ! read mass
