@@ -778,7 +778,7 @@ contains
                           force_constant,&
                           pos_pc_fc_sc,pos_pc,&
                           natoms_uc,natoms_pc,mass_uc,&
-                          branch_idx_pc)
+                          branch_idx_pc,branch_idx_uc)
 
     use config
     use util
@@ -806,7 +806,7 @@ contains
     integer(kind=4),intent(out) :: i_deg_pc_tot
     real(kind=8),intent(out) :: kpc_unfold(125,3)
     real(kind=8),intent(out) :: vpc_unfold(125,3)
-    integer(kind=4),intent(out) :: branch_idx_pc
+    integer(kind=4),intent(out) :: branch_idx_pc,branch_idx_uc
     real(kind=8) :: vxyz(3)
     real(kind=8) :: v_pc(norb_pc,3)
     real(kind=8),intent(in)  :: pos_pc_fc_sc(:,:)
@@ -835,7 +835,13 @@ contains
     idx_temp = 0
     
     ibz = in_ws(reci_uc,k_uc_cart)
-
+    call gen_dyn_uc_qe_k((/k_uc_cart(1),k_uc_cart(2),k_uc_cart(3)/),mass_uc,eigs) 
+    do i = 1,norb_uc
+        if (abs(sqrt(E)-eigs(i)) .lt. 1.0d-2) then
+            branch_idx_uc = i
+            exit
+        end if
+    end do
     if (ibz.eq.2) then
         i_deg_pc = 1
         i_deg_pc_tot = i_deg_pc + i_deg_pc_tot
@@ -1388,8 +1394,7 @@ contains
     nscx = ceiling(dble(nx)/dble(nx_sc))
     nscy = ceiling(dble(ny)/dble(ny_sc))
     nscz = ceiling(dble(nz)/dble(nz_sc))
-
-    
+        
         kpoint = kgrid !matmul(kgrid,cell_reci) 
         dyn(:,:) = 0.0d0
         eig(:) = 0.0d0
@@ -1576,8 +1581,7 @@ contains
     nscy = ceiling(dble(ny)/dble(ny_sc))
     nscz = ceiling(dble(nz)/dble(nz_sc))
 
-    
-        kpoint = matmul(kgrid,cell_reci) 
+        kpoint = matmul(kgrid,cell_reci_sc) ! sample in in-plane sc FBZ
         do i = buffer_left+1,buffer_left+period_left
             iblk = i-buffer_left
             pos_i(:) = pos_all(i,:)
@@ -2306,10 +2310,10 @@ contains
     kpath_pt(2,:) = (/0.0d0,0.0d0,0.0d0/)
     kpath_pt(3,:) = (/0.5d0,0.5d0,0.0d0/)
     kpath_pt(1,:) = (/0.808d0,0.0d0,0.0d0/)
-
-    kpath_pt(1,:) = (/-0.30479908020520,0.507998467008678,0.519697007010743/)
+!    kpath_pt(1,:) = (/0.507998467008678d0,       0.507998467008678d0,       0.380828638909260d0/)
     kpath_pt(2,:) = (/0.0d0,0.0d0,0.0d0/)
     kpath_pt(3,:) = (/0.808d0,0.808d0,0.0d0/)
+!    kpath_pt(3,:) = (/0.507998467008678d0,       0.507998467008678d0,       0.380828638909260d0/)
  
     nkpath(1) = 85
     nkpath(2) = 85
@@ -2352,9 +2356,9 @@ contains
                 pos_j(:) = pos(j,:)
                 pos_j_uc(:) = pos(j,:) ! pos(idx_sc2uc(j),:)
                 mj = mass(j)
-                do a = -2*nx,2*nx
-                    do b = -2*ny,2*ny
-                        do c = -2*nz,2*nz
+                do a = -nx,nx
+                    do b = -ny,ny
+                        do c = -nz,nz
                             weight = 0.0d0
                             dr = -matmul((/dble(a),dble(b),dble(c)/),&
                             cell)+pos_j-pos_i
@@ -2423,6 +2427,114 @@ contains
     close(unit=11)
     end subroutine
 
+    subroutine gen_dyn_uc_qe_k(kpoint,mass_uc,eig_r)
+    
+    use util
+    use input
+    use qe
+
+    implicit none
+
+    integer(kind=4)            :: natm,natm_sc
+    real(kind=8)               :: pos_i(3),pos_j(3),dr(3)
+    real(kind=8)               :: pos_i_uc(3),pos_j_uc(3)
+    real(kind=8)               :: mi,mj
+    integer(kind=4)            :: nscx,nscy,nscz
+    integer(kind=4) :: nb 
+    integer(kind=4) :: i,j,a,b,c,nreq,jj,ir,m,n
+    integer(kind=4) :: aa,bb,cc,t1,t2,t3
+    real(kind=8)    :: ixyz(3),ivcell(3,3),df,weight
+    real(kind=8)    :: eig_r(:)
+    complex(kind=8) :: dyn(size(eig_r,1),size(eig_r,1))
+    complex(kind=8) :: vec(size(eig_r,1),size(eig_r,1))
+    complex(kind=8) :: eig(size(eig_r,1))
+    real(kind=8)    :: kpoint(3)
+    integer(kind=4) :: itemp,jtemp,npt_total,nline
+    real(kind=8)    :: mass_uc(:)
+
+    nb = size(qeph_pos,1)*3
+
+    itemp = 1
+    ivcell = inv_real(qeph_cell)
+    natm = size(qeph_pos,1)
+    natm_sc = size(qeph_pos,1)*qeph_nx*qeph_ny*qeph_nz
+
+    nscx = 1
+    nscy = 1
+    nscz = 1
+    
+    dyn(:,:) = 0.0d0
+    eig(:) = 0.0d0
+    eig_r(:) = 0.0d0
+    vec(:,:) = 0.0d0
+    do i = 1,natm
+        pos_i(:) = qeph_pos(i,:)
+        pos_i_uc(:) = qeph_pos(i,:) !pos(idx_sc2uc(i),:)
+        mi = mass_uc(i)
+        do j = 1,natm
+            pos_j(:) = qeph_pos(j,:)
+            pos_j_uc(:) = qeph_pos(j,:) ! pos(idx_sc2uc(j),:)
+            mj = mass_uc(j)
+            do a = -qeph_nx,qeph_nx
+                do b = -qeph_ny,qeph_ny
+                    do c = -qeph_nz,qeph_nz
+                        weight = 0.0d0
+                        dr = -matmul((/dble(a),dble(b),dble(c)/),&
+                        qeph_cell)+pos_j-pos_i
+                        ixyz =  matmul(dr-(pos_j_uc-pos_i_uc),ivcell)
+                        nreq = 1
+                        jj = 0
+                        do ir = 1,124
+                            df = dot_product(dr,qeph_rws(ir,:))-qeph_rd(ir)
+                            if (df.gt.1.0d-5) then
+                                jj = 1
+                                cycle
+                            end if
+                            if  (abs(df).le.1.0d-5) then
+                                nreq = nreq+1
+                            end if
+                        end do
+                        aa = -idnint(ixyz(1))
+                        bb = -idnint(ixyz(2))
+                        cc = -idnint(ixyz(3))
+                        if (jj .eq. 0) then
+                            weight = 1.0d0/dble(nreq)
+                        end if
+                        if (weight .gt. 0.0d0) then
+                            t1 = mod(aa+1,qeph_nx)
+                            if(t1.le.0) then 
+                                t1=t1+qeph_nx
+                            end if
+                            t2 = mod(bb+1,qeph_ny)
+                            if(t2.le.0) then
+                                t2=t2+qeph_ny
+                            end if
+                            t3 = mod(cc+1,qeph_nz)
+                            if(t3.le.0) then 
+                                t3=t3+qeph_nz
+                            end if
+                            do m = 1,3
+                                do n = 1,3
+                                    dyn((i-1)*3+m,(j-1)*3+n) = &
+                                    dyn((i-1)*3+m,(j-1)*3+n) + &
+                                    weight*qeph_fc(m,n,i,j,t1,t2,t3)* &
+                                    exp(i_imag*&
+                                    dot_product(dr,kpoint))/sqrt(mi*mj)
+                                end do
+                            end do
+                        end if
+                    end do
+                end do
+            end do    
+        end do
+    end do
+    !dyn = Hermitian(dyn) 
+    call eigen_sorting(dyn,eig,vec)
+    eig_r = sqrt(abs(eig))
+    end subroutine
+
+
+
     subroutine gen_dyn_pc_qe(dyn,cell,pos,mass,fc,nx,ny,nz,&
                             rws,rd)
     
@@ -2466,7 +2578,6 @@ contains
     kpath_pt(2,:) = (/0.0d0,0.0d0,0.0d0/)
     kpath_pt(3,:) = (/0.5d0,0.5d0,0.0d0/)
     kpath_pt(1,:) = (/1.616d0,0.0d0,0.0d0/)
- kpath_pt(1,:) = (/-0.30479908020520,0.507998467008678,0.519697007010743/)
     kpath_pt(2,:) = (/0.0d0,0.0d0,0.0d0/)
     kpath_pt(3,:) = (/0.808d0,0.808d0,0.0d0/)
     nkpath(1) = 85
@@ -2509,9 +2620,9 @@ contains
                 pos_j(:) = pos(j,:)
                 pos_j_uc(:) = pos(j,:) ! pos(idx_sc2uc(j),:)
                 mj = mass(j)
-                do a = -2*nx,2*nx
-                    do b = -2*ny,2*ny
-                        do c = -2*nz,2*nz
+                do a = -nx,nx
+                    do b = -ny,ny
+                        do c = -nz,nz
                             weight = 0.0d0
                             dr = -matmul((/dble(a),dble(b),dble(c)/),&
                             cell)+pos_j-pos_i
@@ -2631,9 +2742,9 @@ contains
                 pos_j(:) = qeph_pos(j,:)
                 pos_j_uc(:) = qeph_pos(j,:) ! pos(idx_sc2uc(j),:)
                 mj = mass_uc(j)
-                do a = -2*qeph_nx,2*qeph_nx
-                    do b = -2*qeph_ny,2*qeph_ny
-                        do c = -2*qeph_nz,2*qeph_nz
+                do a = -qeph_nx,qeph_nx
+                    do b = -qeph_ny,qeph_ny
+                        do c = -qeph_nz,qeph_nz
                             weight = 0.0d0
                             dr = -matmul((/dble(a),dble(b),dble(c)/),&
                             qeph_cell)+pos_j-pos_i

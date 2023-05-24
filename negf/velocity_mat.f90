@@ -385,6 +385,8 @@ contains
     real(kind=8) :: vel_xyz_R_ret_pc(nr,3),vel_xyz_R_adv_pc(nr,3)
     integer(kind=4) :: branch_idx_L_adv_pc(nl),branch_idx_R_ret_pc(nr)
     integer(kind=4) :: branch_idx_L_ret_pc(nl),branch_idx_R_adv_pc(nr)
+    integer(kind=4) :: branch_idx_L_adv_uc(nl),branch_idx_R_ret_uc(nr)
+    integer(kind=4) :: branch_idx_L_ret_uc(nl),branch_idx_R_adv_uc(nr)
     integer(kind=4),allocatable :: deg_list(:),deg_all(:),temp(:)
     integer(kind=4) :: start, next_start, case_no, ndeg
 
@@ -613,6 +615,8 @@ contains
     vel_xyz_R_ret_pc = 0.0d0
     branch_idx_L_adv_pc = 0
     branch_idx_R_ret_pc = 0
+    branch_idx_L_adv_uc = 0
+    branch_idx_R_ret_uc = 0
     weightL_adv = 0.0d0
     weightR_ret = 0.0d0
 
@@ -701,7 +705,8 @@ contains
                           force_constant_pc_l,&
                           pos_pc_l_fc_sc,positions_pc_l,&
                           natoms_uc_l,natoms_pc_l,mass_uc_l,&
-                          branch_idx_L_adv_pc(i))
+                          branch_idx_L_adv_pc(i),&
+                          branch_idx_L_adv_uc(i))
 
             k_xyz_L_adv_pc(i,:) = find_min_dist(kpc_unfold_l(1:kpc_deg_num_l,:),kpc_deg_num_l)
             vel_xyz_L_adv_pc(i,:) = vpc_unfold_l(1,:)
@@ -902,6 +907,8 @@ contains
     vel_xyz_R_adv_pc = 0.0d0
     branch_idx_L_ret_pc = 0
     branch_idx_R_adv_pc = 0
+    branch_idx_L_ret_uc = 0
+    branch_idx_R_adv_uc = 0
     weightL_ret = 0.0d0
     weightR_adv = 0.0d0
 
@@ -967,7 +974,8 @@ contains
                           force_constant_pc_l,&
                           pos_pc_l_fc_sc,positions_pc_l,&
                           natoms_uc_l,natoms_pc_l,mass_uc_l,&
-                          branch_idx_L_ret_pc(i))
+                          branch_idx_L_ret_pc(i),&
+                          branch_idx_L_ret_uc(i))
 
             k_xyz_L_ret_pc(i,:) = find_min_dist(kpc_unfold_l(1:kpc_deg_num_l,:),kpc_deg_num_l)
 !            write(*,*) sqrt(dot_product(k_xyz_L_ret_pc(i,:),k_xyz_L_ret_pc(i,:)))
@@ -1229,7 +1237,8 @@ contains
                           force_constant_pc_r,&
                           pos_pc_r_fc_sc,positions_pc_r,&
                           natoms_uc_r,natoms_pc_r,mass_uc_r,&
-                          branch_idx_R_ret_pc(i))
+                          branch_idx_R_ret_pc(i),&
+                          branch_idx_R_ret_uc(i))
 
             k_xyz_R_ret_pc(i,:) = find_min_dist(kpc_unfold_r(1:kpc_deg_num_r,:),kpc_deg_num_r)
             vel_xyz_R_ret_pc(i,:) = vpc_unfold_r(1,:)
@@ -1468,7 +1477,8 @@ contains
                           force_constant_pc_r,&
                           pos_pc_r_fc_sc,positions_pc_r,&
                           natoms_uc_r,natoms_pc_r,mass_uc_r,&
-                          branch_idx_R_adv_pc(i))
+                          branch_idx_R_adv_pc(i),&
+                          branch_idx_R_adv_uc(i))
 
             k_xyz_R_adv_pc(i,:) = find_min_dist(kpc_unfold_r(1:kpc_deg_num_r,:),kpc_deg_num_r)
             vel_xyz_R_adv_pc(i,:) = vpc_unfold_r(1,:)
@@ -1674,11 +1684,11 @@ contains
         call write_md(sqrt(E),nn,trl,rll,k_xyz_R_ret,k_xyz_L_ret,k_xyz_L_adv,&
                              k_xyz_R_ret_pc,k_xyz_L_ret_pc,k_xyz_L_adv_pc,&
                              vel_xyz_R_ret_pc,vel_xyz_L_ret_pc,vel_xyz_L_adv_pc,'mdl',&
-                             branch_idx_L_adv_pc)
+                             branch_idx_L_adv_pc,branch_idx_L_adv_uc)
         call write_md(sqrt(E),nn,tlr,rrr,k_xyz_L_ret,k_xyz_R_ret,k_xyz_R_adv,&
                              k_xyz_L_ret_pc,k_xyz_R_ret_pc,k_xyz_R_adv_pc,&
                              vel_xyz_L_ret_pc,vel_xyz_R_ret_pc,vel_xyz_R_adv_pc,'mdr',&
-                             branch_idx_R_adv_pc) ! rightoleft
+                             branch_idx_R_adv_pc,branch_idx_R_adv_uc) ! rightoleft
 
 
 
@@ -1813,6 +1823,8 @@ contains
     real(kind=8) :: vel_xyz_R_ret_pc(nr,3),vel_xyz_R_adv_pc(nr,3)
     integer(kind=4) :: branch_idx_L_adv_pc(nl),branch_idx_R_ret_pc(nr)
     integer(kind=4) :: branch_idx_L_ret_pc(nl),branch_idx_R_adv_pc(nr)
+    integer(kind=4) :: branch_idx_L_adv_uc(nl),branch_idx_R_ret_uc(nr)
+    integer(kind=4) :: branch_idx_L_ret_uc(nl),branch_idx_R_adv_uc(nr)
     integer(kind=4),allocatable :: deg_list(:),deg_all(:),temp(:)
     integer(kind=4) :: start, next_start, case_no, ndeg
 
@@ -1870,7 +1882,7 @@ contains
     num_prop_l_adv = 0
     UL = 0.0d0
     do i = 1, nl
-        if (abs(abs(lambda_adv_L_m(i))-1.0) .lt. lambda_eta) then
+        if (abs(abs(lambda_adv_L_m(i))-1.0d0) .lt. lambda_eta) then
             num_prop_l_adv = num_prop_l_adv + 1
             l_adv_to_propl(num_prop_l_adv) = i
             UL(:,num_prop_l_adv) = U_adv_L_m(:,i)
@@ -1895,93 +1907,93 @@ contains
             U_adv_L_m(:,l_adv_to_propl(i)) = UL(:,i)
         end do
 
-    ! There exist degenerate states and we need to apply
-    ! rotation for each degenerate eigenvector to make them
-    ! orthonormal to each other.
+        ! There exist degenerate states and we need to apply
+        ! rotation for each degenerate eigenvector to make them
+        ! orthonormal to each other.
 
-    tf_l = 0.0d0
-    do i = 1,nl
-        tf_l(i,i) = 1.0d0
-    end do
-    start = 1
-    case_no = 1
-    n = 0
-    allocate(deg_all(1),temp(1))
-    deg_all = 0
+        tf_l = 0.0d0
+        do i = 1,nl
+            tf_l(i,i) = 1.0d0
+        end do
+        start = 1
+        case_no = 1
+        n = 0
+        allocate(deg_all(1),temp(1))
+        deg_all = 0
 
-    do while (case_no .eq. 1)
-        call find_degenerate(lambda_adv_L_m,start,deg_list,&
-                        next_start,case_no,deg_all)
-        ndeg = size(deg_list,1)
-        if (ndeg .gt. 1) then
-           ! first record the index of degenerate states
-            n = n+ndeg
-            if (n.eq.ndeg) then
-                deallocate(deg_all,temp)
-                allocate(deg_all(ndeg),temp(ndeg))
-                deg_all(1:ndeg) = deg_list
-                temp = deg_all
-            else
-                deallocate(deg_all)
-                allocate(deg_all(n))
-                deg_all(1:n-ndeg) = temp
-                deg_all(n-ndeg+1:n) = deg_list
-                deallocate(temp)
-                allocate(temp(n))
-                temp = deg_all
-            end if
-            temp_HL = haml + hamlv/lambda_adv_L_m(deg_list(1)) +&
-                      transpose(dconjg(hamlv))*lambda_adv_L_m(deg_list(1))
-                      !Ham(n_buffer_l+1:n_buffer_l+nl,&
-                      !n_buffer_l+1:n_buffer_l+nl)+ &
-                  !Ham(n_buffer_l+1:n_buffer_l+nl,&
-                  !n_buffer_l+nl+1:n_buffer_l+2*nl)/&
-                  !lambda_adv_L_m(deg_list(1))+&
-                  !Ham(n_buffer_l+nl+1:n_buffer_l+2*nl,&
-                  !n_buffer_l+1:n_buffer_l+nl)*&
-                  !lambda_adv_L_m(deg_list(1))
-
-            call eigenH(temp_HL,temp_eL,temp_evL)
-
-            allocate(A(nl,ndeg),B(nl,ndeg),X(ndeg,ndeg))
-            X = 0.0d0
-            ! compute A
-            do i = 1,ndeg
-                A(:,i) = U_adv_L_m(:,deg_list(i))
-            end do
-
-    !        ! compute B
-            countL = 1
-            do i = 1,nl
-                if (abs(E-temp_eL(i)).lt.1.0d-4) then
-                    B(:,countL) = temp_evL(:,i)/&
-                     lambda_adv_L_m(deg_list(1))
-                    countL = countL +1
+        do while (case_no .eq. 1)
+            call find_degenerate(lambda_adv_L_m,start,deg_list,&
+                            next_start,case_no,deg_all)
+            ndeg = size(deg_list,1)
+            if (ndeg .gt. 1) then
+               ! first record the index of degenerate states
+                n = n+ndeg
+                if (n.eq.ndeg) then
+                    deallocate(deg_all,temp)
+                    allocate(deg_all(ndeg),temp(ndeg))
+                    deg_all(1:ndeg) = deg_list
+                    temp = deg_all
+                else
+                    deallocate(deg_all)
+                    allocate(deg_all(n))
+                    deg_all(1:n-ndeg) = temp
+                    deg_all(n-ndeg+1:n) = deg_list
+                    deallocate(temp)
+                    allocate(temp(n))
+                    temp = deg_all
                 end if
-            end do
-            ! compute X
-            X = lstsq(A,B)
-            ! collect all coefficients for degenerate states
-            do i = 1,ndeg
-                do j = 1,ndeg
-                    tf_l(deg_list(i),deg_list(j))=X(i,j)
+                temp_HL = haml + hamlv/lambda_adv_L_m(deg_list(1)) +&
+                          transpose(dconjg(hamlv))*lambda_adv_L_m(deg_list(1))
+                          !Ham(n_buffer_l+1:n_buffer_l+nl,&
+                          !n_buffer_l+1:n_buffer_l+nl)+ &
+                      !Ham(n_buffer_l+1:n_buffer_l+nl,&
+                      !n_buffer_l+nl+1:n_buffer_l+2*nl)/&
+                      !lambda_adv_L_m(deg_list(1))+&
+                      !Ham(n_buffer_l+nl+1:n_buffer_l+2*nl,&
+                      !n_buffer_l+1:n_buffer_l+nl)*&
+                      !lambda_adv_L_m(deg_list(1))
+
+                call eigenH(temp_HL,temp_eL,temp_evL)
+
+                allocate(A(nl,ndeg),B(nl,ndeg),X(ndeg,ndeg))
+                X = 0.0d0
+                ! compute A
+                do i = 1,ndeg
+                    A(:,i) = U_adv_L_m(:,deg_list(i))
                 end do
-            end do
-            if ( maxval(abs(X)) > 2) then
-                write(*,*)'X', abs(X)
-!                stop
+
+        !        ! compute B
+                countL = 1
+                do i = 1,nl
+                    if (abs(E-temp_eL(i)).lt.1.0d-4) then
+                        B(:,countL) = temp_evL(:,i)/&
+                         lambda_adv_L_m(deg_list(1))
+                        countL = countL +1
+                    end if
+                end do
+                ! compute X
+                X = lstsq(A,B)
+                ! collect all coefficients for degenerate states
+                do i = 1,ndeg
+                    do j = 1,ndeg
+                        tf_l(deg_list(i),deg_list(j))=X(i,j)
+                    end do
+                end do
+                if ( maxval(abs(X)) > 2) then
+                    write(*,*)'X', abs(X)
+    !                stop
+                end if
+                errors = maxval(abs(matmul(A,X)-B))
+                deallocate(A,B,X)
+
             end if
-            errors = maxval(abs(matmul(A,X)-B))
-            deallocate(A,B,X)
+            start = next_start
+        end do
 
-        end if
-        start = next_start
-    end do
-
-    U_adv_L_m = matmul(U_adv_L_m,tf_l)
-    do i = 1,num_prop_l_adv
-        U_adv_L_m(:,l_adv_to_propl(i)) = U_adv_L_m(:,l_adv_to_propl(i))/sqrt(dot_product(U_adv_L_m(:,l_adv_to_propl(i)),U_adv_L_m(:,l_adv_to_propl(i))))
-    end do
+        U_adv_L_m = matmul(U_adv_L_m,tf_l)
+        do i = 1,num_prop_l_adv
+            U_adv_L_m(:,l_adv_to_propl(i)) = U_adv_L_m(:,l_adv_to_propl(i))/sqrt(dot_product(U_adv_L_m(:,l_adv_to_propl(i)),U_adv_L_m(:,l_adv_to_propl(i))))
+        end do
     end if
 
     V_adv_L_m = -matmul(matmul(transpose(dconjg(U_adv_L_m)),&
@@ -2044,6 +2056,8 @@ contains
     vel_xyz_R_ret_pc = 0.0d0
     branch_idx_L_adv_pc = 0
     branch_idx_R_ret_pc = 0 
+    branch_idx_L_adv_uc = 0
+    branch_idx_R_ret_uc = 0 
     weightL_adv = 0.0d0
     weightR_ret = 0.0d0
 
@@ -2085,7 +2099,6 @@ contains
             bz_idx_L_adv(i) = maxloc(weightL_adv(i,:),1)
 !            write(*,*)'maxvalues', maxval(weightL_adv(i,:))
 !            stop
-
             k_xyz_L_adv(i,:) = move_in_ws2(matmul(ksc(:) + &
                                k_shift(maxloc(weightL_adv(i,:),1),:),&
                                recivec),reci_uc_l)
@@ -2120,7 +2133,6 @@ contains
             vpc_unfold_l(:,:) = 0.0d0
             kpc_unfold_l(:,:) = 0.0d0
             !write(*,*) 'find_ladv',ksc
-            !write(*,*) weightL_adv(i,:)
 
             call find_k_pc(E,norb_pc_l,&
                           ksc_cart,&
@@ -2133,7 +2145,8 @@ contains
                           force_constant_pc_l,&
                           pos_pc_l_fc_sc,positions_pc_l,&
                           natoms_uc_l,natoms_pc_l,mass_uc_l,&
-                          branch_idx_L_adv_pc(i))
+                          branch_idx_L_adv_pc(i),&
+                          branch_idx_L_adv_uc(i))
 
             k_xyz_L_adv_pc(i,:) = find_min_dist(kpc_unfold_l(1:kpc_deg_num_l,:),kpc_deg_num_l)
             vel_xyz_L_adv_pc(i,:) = vpc_unfold_l(1,:)
@@ -2159,7 +2172,7 @@ contains
     j = 0
     do i = 1, nl
 !        write(*,*) abs(lambda_ret_L_m(i))
-        if (abs(abs(lambda_ret_L_m(i))-1.0) .lt. lambda_eta) then
+        if (abs(abs(lambda_ret_L_m(i))-1.0d0) .lt. lambda_eta) then
             k_z_L_ret(i) = -log_fbz(lambda_ret_L_m(i),a_z_L)
             num_prop_l_ret = num_prop_l_ret + 1
             l_ret_to_propl(num_prop_l_ret) = i
@@ -2332,6 +2345,8 @@ contains
     vel_xyz_R_adv_pc = 0.0d0
     branch_idx_L_ret_pc = 0
     branch_idx_R_adv_pc = 0
+    branch_idx_L_ret_uc = 0
+    branch_idx_R_adv_uc = 0
     weightL_ret = 0.0d0
     weightR_adv = 0.0d0
 
@@ -2397,7 +2412,8 @@ contains
                           force_constant_pc_l,&
                           pos_pc_l_fc_sc,positions_pc_l,&
                           natoms_uc_l,natoms_pc_l,mass_uc_l,&
-                          branch_idx_L_ret_pc(i))
+                          branch_idx_L_ret_pc(i),&
+                          branch_idx_L_ret_uc(i))
 
             k_xyz_L_ret_pc(i,:) = find_min_dist(kpc_unfold_l(1:kpc_deg_num_l,:),kpc_deg_num_l)
 !            write(*,*) sqrt(dot_product(k_xyz_L_ret_pc(i,:),k_xyz_L_ret_pc(i,:)))
@@ -2426,7 +2442,7 @@ contains
     j = 0
 
     do i = 1, nr
-        if (abs(abs(lambda_ret_R_p(i))-1.0) .lt. lambda_eta) then
+        if (abs(abs(lambda_ret_R_p(i))-1.0d0) .lt. lambda_eta) then
             k_z_R_ret(i) = log_fbz(lambda_ret_R_p(i),a_z_R)
             !write(*,*) k_z_R_ret(i)
             num_prop_r_ret    = num_prop_r_ret + 1
@@ -2662,7 +2678,8 @@ contains
                           force_constant_pc_r,&
                           pos_pc_r_fc_sc,positions_pc_r,&
                           natoms_uc_r,natoms_pc_r,mass_uc_r,&
-                          branch_idx_R_ret_pc(i))
+                          branch_idx_R_ret_pc(i),&
+                          branch_idx_R_ret_uc(i))
 
             k_xyz_R_ret_pc(i,:) = find_min_dist(kpc_unfold_r(1:kpc_deg_num_r,:),kpc_deg_num_r)
             vel_xyz_R_ret_pc(i,:) = vpc_unfold_r(1,:)
@@ -2687,7 +2704,7 @@ contains
     r_adv_to_propr = 0
     UR = 0.0d0
     do i = 1, nr
-        if (abs(abs(lambda_adv_R_p(i))-1.0) .lt. lambda_eta) then
+        if (abs(abs(lambda_adv_R_p(i))-1.0d0) .lt. lambda_eta) then
             num_prop_r_adv   = num_prop_r_adv + 1
             r_adv_to_propr(num_prop_r_adv) = i
             UR(:,num_prop_r_adv) = U_adv_R_p(:,i)
@@ -2903,7 +2920,8 @@ contains
                           force_constant_pc_r,&
                           pos_pc_r_fc_sc,positions_pc_r,&
                           natoms_uc_r,natoms_pc_r,mass_uc_r,&
-                          branch_idx_R_adv_pc(i))
+                          branch_idx_R_adv_pc(i),&
+                          branch_idx_R_adv_uc(i))
 
             k_xyz_R_adv_pc(i,:) = find_min_dist(kpc_unfold_r(1:kpc_deg_num_r,:),kpc_deg_num_r)
             vel_xyz_R_adv_pc(i,:) = vpc_unfold_r(1,:)
@@ -2999,7 +3017,7 @@ contains
         !          gr),Hamrv)))
         write(*,*) maxval(abs(Q_R))
         write(*,*) maxval(abs(inv(Q_R)))
-        stop
+        !stop
     end if
 
 
@@ -3144,11 +3162,11 @@ contains
         call write_md(sqrt(E),nn,trl,rll,k_xyz_R_ret,k_xyz_L_ret,k_xyz_L_adv,&
                              k_xyz_R_ret_pc,k_xyz_L_ret_pc,k_xyz_L_adv_pc,&
                              vel_xyz_R_ret_pc,vel_xyz_L_ret_pc,vel_xyz_L_adv_pc,'mdl',&
-                             branch_idx_L_adv_pc)
+                             branch_idx_L_adv_pc,branch_idx_L_adv_uc)
         call write_md(sqrt(E),nn,tlr,rrr,k_xyz_L_ret,k_xyz_R_ret,k_xyz_R_adv,&
                              k_xyz_L_ret_pc,k_xyz_R_ret_pc,k_xyz_R_adv_pc,&
                              vel_xyz_L_ret_pc,vel_xyz_R_ret_pc,vel_xyz_R_adv_pc,'mdr',&
-                             branch_idx_R_adv_pc) ! rightoleft
+                             branch_idx_R_adv_pc,branch_idx_R_adv_uc) ! rightoleft
 
 
 
