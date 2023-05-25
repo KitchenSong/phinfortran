@@ -822,10 +822,12 @@ contains
     real(kind=8) :: reci_uc(3,3),recivec_pc(3,3)
     integer(kind=4) :: natoms_uc,natoms_pc
     integer(kind=4) :: idx_temp
+    complex(kind=8) :: globalphase1,globalphase2
 
     natoms_pc = norb_pc/3
 
-    l = 1*max(n_bloch_x,n_bloch_y)
+!    l = 1*max(n_bloch_x,n_bloch_y)
+    l = ceiling(dble(norb_uc)/dble(norb_pc))
     i_deg_pc_tot = 0
     kpc_unfold(:,:) = 0.0d0
     vpc_unfold(:,:) = 0.0d0
@@ -835,38 +837,47 @@ contains
     idx_temp = 0
     
     ibz = in_ws(reci_uc,k_uc_cart)
-    call gen_dyn_uc_qe_k((/k_uc_cart(1),k_uc_cart(2),k_uc_cart(3)/),mass_uc,eigs) 
-    do i = 1,norb_uc
-        if (abs(sqrt(E)-eigs(i)) .lt. 1.0d-2) then
-            branch_idx_uc = i
-            exit
-        end if
-    end do
-    if (ibz.eq.2) then
-        i_deg_pc = 1
-        i_deg_pc_tot = i_deg_pc + i_deg_pc_tot
-        kpc_unfold(i_deg_pc_tot,:) = k_uc_cart
-        if (qe_fc.eq. 0) then
-            call group_velocity_pc(norb_pc,&
-                        k_uc_cart,dyn_pc,&
-                        force_constant,pos_pc,&
-                        pos_pc_fc_sc,&
-                        eigs_pc,evs_pc,v_pc)
-        else
-            call group_velocity_pc_qe(norb_pc,&
-                        k_uc_cart,dyn_pc,&
-                        force_constant,pos_pc,&
-                        pos_pc_fc_sc,&
-                        eigs_pc,evs_pc,v_pc,mass_uc)
-        end if
-        do i1 = 1,norb_pc
-            if(abs(sqrt(E)-sqrt(abs(eigs_pc(i1)))).lt.2.0d-1)then
-                vxyz = v_pc(i1,:)
-                vpc_unfold(1,:) = vxyz(:)
-                branch_idx_pc = i1
-            end if
-        end do
-    else  
+    call gen_dyn_uc_qe_k(k_uc_cart,mass_uc,eigs,evs) 
+    !do i = 1,norb_uc
+    !    if (abs(sqrt(E)-eigs(i)) .lt. 1.0d-2) then
+    !        branch_idx_uc = i
+    !        exit
+    !    end if
+    !end do
+    branch_idx_uc = minloc(abs(sqrt(E)-eigs(:)),1)
+!    write(*,*) sqrt(E), eigs
+!    write(*,*) abs(evs(7:9,branch_idx_uc)/evs(1:3,branch_idx_uc))
+!    write(*,*) abs(evs(10:12,branch_idx_uc)/evs(4:6,branch_idx_uc))
+!    write(*,*) log(evs(7:9,branch_idx_uc)/evs(1:3,branch_idx_uc))/i_imag
+!    write(*,*) log(evs(10:12,branch_idx_uc)/evs(4:6,branch_idx_uc))/i_imag
+!    stop
+
+
+    !if (ibz.eq.2) then
+    !    i_deg_pc = 1
+    !    i_deg_pc_tot = i_deg_pc + i_deg_pc_tot
+    !    kpc_unfold(i_deg_pc_tot,:) = k_uc_cart
+    !    if (qe_fc.eq. 0) then
+    !        call group_velocity_pc(norb_pc,&
+    !                    k_uc_cart,dyn_pc,&
+    !                    force_constant,pos_pc,&
+    !                    pos_pc_fc_sc,&
+    !                    eigs_pc,evs_pc,v_pc)
+    !    else
+    !        call group_velocity_pc_qe(norb_pc,&
+    !                    k_uc_cart,dyn_pc,&
+    !                    force_constant,pos_pc,&
+    !                    pos_pc_fc_sc,&
+    !                    eigs_pc,evs_pc,v_pc,mass_uc)
+    !    end if
+    !    do i1 = 1,norb_pc
+    !        if(abs(sqrt(E)-sqrt(abs(eigs_pc(i1)))).lt.5.0d-3)then
+    !            vxyz = v_pc(i1,:)
+    !            vpc_unfold(1,:) = vxyz(:)
+    !            branch_idx_pc = i1
+    !        end if
+    !    end do
+    !else  
         do i1 = -l,l
             do i2 = -l,l
                 do i3 = -l,l
@@ -886,8 +897,8 @@ contains
                         call eigen_sorting(dyn_pc,eigs_c,evs_pc) 
                         eigs_pc = abs(eigs_c)
                         do i = 1,norb_pc
-                            if(abs(sqrt(E)-sqrt(abs(eigs_pc(i)))).lt.2.0d-1)then 
-                                idx_temp = i
+                            if(abs(sqrt(E)-sqrt(eigs_pc(i))).lt.1.0d-2) then 
+                                idx_temp = minloc(abs(sqrt(E)-sqrt(eigs_pc(:))),1)
                                 kpc_ws = kpc
                                 i_deg_pc = 1
                                 goto 123
@@ -896,7 +907,7 @@ contains
                     end if
                 end do
             end do
-        end do
+        end do        
 123     continue
         if (i_deg_pc .gt. 0) then
             call group_velocity_pc_qe(norb_pc,&
@@ -910,7 +921,8 @@ contains
             vpc_unfold(i_deg_pc_tot,:) = v_pc(branch_idx_pc,:)
             branch_idx_pc = idx_temp 
         end if 
-    end if
+    !end if
+
 !    if (i_deg_pc_tot .eq.0 )then
 !        write(*,*) 'one K point does not find the corresponding k in FBZ of left PC'
 !        write(*,*) 'sc',ksc
@@ -2427,7 +2439,7 @@ contains
     close(unit=11)
     end subroutine
 
-    subroutine gen_dyn_uc_qe_k(kpoint,mass_uc,eig_r)
+    subroutine gen_dyn_uc_qe_k(kpoint,mass_uc,eig_r,vec)
     
     use util
     use input
