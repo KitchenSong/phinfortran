@@ -231,7 +231,7 @@ subroutine get_G_full(ie,mm,Ham,norb,gl,gr,gml,gmr,sl,sr,&
             device_start + layerend(1),&
             device_start + layerstart(1):&
             device_start + layerend(1))
-    Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(layer_list(1))
+    Es = (E+(E*eta+eta0)*i_imag)*eyemat(layer_list(1))
     ! G_1, 1 with Buttiker self-energy
     Gblock_NN = inv(Es-H-matmul(matmul(transpose(dconjg(Vcoup)),gl(:,:)),Vcoup)-eyed(1,:,:))
     ! left-connected Green function
@@ -255,7 +255,7 @@ subroutine get_G_full(ie,mm,Ham,norb,gl,gr,gml,gmr,sl,sr,&
                 device_start+layerend(i-1),&
                 device_start+layerstart(i):&
                 device_start+layerend(i)) ! V_n_n+1
-        Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(layer_list(i))
+        Es = (E+(E*eta+eta0)*i_imag)*eyemat(layer_list(i))
         H = Ham(device_start+layerstart(i):&
                 device_start+layerend(i),&
                 device_start+layerstart(i):&
@@ -287,7 +287,7 @@ subroutine get_G_full(ie,mm,Ham,norb,gl,gr,gml,gmr,sl,sr,&
 
     deallocate(Es)
     allocate(Es(nr,nr))
-    Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(nr)
+    Es = (E+(E*eta+eta0)*i_imag)*eyemat(nr)
 
     allocate(GRinv(nr,nr))
     GRinv = Es - Ham(norb-n_buffer_r-2*nr+1:&
@@ -375,7 +375,7 @@ subroutine get_G_full(ie,mm,Ham,norb,gl,gr,gml,gmr,sl,sr,&
             device_start+layerend(nlayer),&
             device_start+layerstart(nlayer):&
             device_start+layerend(nlayer)) ! H_N_N
-    Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(layer_list(nlayer))
+    Es = (E+(E*eta+eta0)*i_imag)*eyemat(layer_list(nlayer))
 
     ! G_N, N
     Gblock_NN = inv(Es-H-&
@@ -399,7 +399,7 @@ subroutine get_G_full(ie,mm,Ham,norb,gl,gr,gml,gmr,sl,sr,&
                     device_start+layerstart(i-1):&
                     device_start+layerend(i-1)) ! V_n+1_n
 
-        Es = (E + 10.0d0*(E*eta+eta0)*i_imag) * eyemat(layer_list(i-1))
+        Es = (E + (E*eta+eta0)*i_imag) * eyemat(layer_list(i-1))
 
         H = Ham(device_start+layerstart(i-1):&
                 device_start+layerend(i-1),&
@@ -424,7 +424,7 @@ subroutine get_G_full(ie,mm,Ham,norb,gl,gr,gml,gmr,sl,sr,&
 
     deallocate(Es)
     allocate(Es(nl,nl))
-    Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(nl)
+    Es = (E+(E*eta+eta0)*i_imag)*eyemat(nl)
 
     allocate(GLinv(nl,nl))
     GLinv = Es - Ham(n_buffer_l+nl+1:n_buffer_l+2*nl,&
@@ -553,7 +553,7 @@ subroutine get_G_full_tdb(ie,mm,gl,gr,gml,gmr,sl,sr,&
     !        device_start + layerend(1),&
     !        device_start + layerstart(1):&
     !        device_start + layerend(1))
-    Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(layer_list(1))
+    Es = (E+(E*eta+eta0)*i_imag)*eyemat(layer_list(1))
     ! G_1, 1 with Buttiker self-energy
     Gblock_NN = inv(Es-H-matmul(matmul(transpose(dconjg(Vcoup)),gl(:,:)),Vcoup)-eyed(1,:,:))
     ! left-connected Green function
@@ -578,7 +578,7 @@ subroutine get_G_full_tdb(ie,mm,gl,gr,gml,gmr,sl,sr,&
         !        device_start+layerend(i-1),&
         !        device_start+layerstart(i):&
         !        device_start+layerend(i)) ! V_n_n+1
-        Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(layer_list(i))
+        Es = (E+(E*eta+eta0)*i_imag)*eyemat(layer_list(i))
         H = hamd(i,:,:)
         !Ham(device_start+layerstart(i):&
         !        device_start+layerend(i),&
@@ -612,7 +612,7 @@ subroutine get_G_full_tdb(ie,mm,gl,gr,gml,gmr,sl,sr,&
 
     deallocate(Es)
     allocate(Es(nr,nr))
-    Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(nr)
+    Es = (E+(E*eta+eta0)*i_imag)*eyemat(nr)
 
     allocate(GRinv(nr,nr))
     GRinv = Es - hamr - sr(:,:) 
@@ -702,7 +702,7 @@ subroutine get_G_full_tdb(ie,mm,gl,gr,gml,gmr,sl,sr,&
     !        device_start+layerend(nlayer),&
     !        device_start+layerstart(nlayer):&
     !        device_start+layerend(nlayer)) ! H_N_N
-    Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(layer_list(nlayer))
+    Es = (E+(E*eta+eta0)*i_imag)*eyemat(layer_list(nlayer))
 
     ! G_N, N
     Gblock_NN = inv(Es-H-&
@@ -728,7 +728,7 @@ subroutine get_G_full_tdb(ie,mm,gl,gr,gml,gmr,sl,sr,&
         !            device_start+layerstart(i-1):&
         !            device_start+layerend(i-1)) ! V_n+1_n
 
-        Es = (E + 10.0d0*(E*eta+eta0)*i_imag) * eyemat(layer_list(i-1))
+        Es = (E + (E*eta+eta0)*i_imag) * eyemat(layer_list(i-1))
 
         H = hamd(i-1,:,:) 
         !Ham(device_start+layerstart(i-1):&
@@ -754,7 +754,7 @@ subroutine get_G_full_tdb(ie,mm,gl,gr,gml,gmr,sl,sr,&
 
     deallocate(Es)
     allocate(Es(nl,nl))
-    Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(nl)
+    Es = (E+(E*eta+eta0)*i_imag)*eyemat(nl)
 
     allocate(GLinv(nl,nl))
     GLinv = Es - haml - sl(:,:) ! G_1_1

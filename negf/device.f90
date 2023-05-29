@@ -345,7 +345,7 @@ contains
             device_start + layerend(1),&
             device_start + layerstart(1):&
             device_start + layerend(1))
-    Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(layer_list(1))
+    Es = (E+(E*eta+eta0)*i_imag)*eyemat(layer_list(1))
     ! G_1, 1
     Gblock_NN = inv(Es-H-matmul(matmul(transpose(dconjg(Vcoup)),gl(:,:)),Vcoup))
     ! G_1, 1
@@ -363,7 +363,7 @@ contains
 
         deallocate(Es)
         allocate(Es(layer_list(i),layer_list(i)))
-        Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(layer_list(i))
+        Es = (E+(E*eta+eta0)*i_imag)*eyemat(layer_list(i))
 
         deallocate(H)
         allocate(H(layer_list(i),layer_list(i)))
@@ -397,7 +397,7 @@ contains
 
     deallocate(Es)
     allocate(Es(nr,nr))
-    Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(nr)
+    Es = (E+(E*eta+eta0)*i_imag)*eyemat(nr)
 
     allocate(GRinv(nr,nr))
     GRinv = Es - Ham(norb-n_buffer_r-2*nr+1:&
@@ -449,7 +449,7 @@ contains
             device_start+layerend(nlayer),&
             device_start+layerstart(nlayer):&
             device_start+layerend(nlayer)) ! H_N_N
-    Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(layer_list(nlayer))
+    Es = (E+(E*eta+eta0)*i_imag)*eyemat(layer_list(nlayer))
 
     ! G_N, N
     Gblock_NN = inv(Es-H-&
@@ -468,7 +468,7 @@ contains
 
         deallocate(Es)
         allocate(Es(layer_list(i-1),layer_list(i-1)))
-        Es = (E + 10.0d0*(E*eta+eta0)*i_imag) * eyemat(layer_list(i-1))
+        Es = (E + (E*eta+eta0)*i_imag) * eyemat(layer_list(i-1))
 
         deallocate(H)
         allocate(H(layer_list(i-1),layer_list(i-1)))
@@ -512,7 +512,7 @@ contains
 
     deallocate(Es)
     allocate(Es(nl,nl))
-    Es = (E+10.0d0*(E*eta+eta0)*i_imag)*eyemat(nl)
+    Es = (E+(E*eta+eta0)*i_imag)*eyemat(nl)
 
     allocate(GLinv(nl,nl))
     GLinv = Es - Ham(n_buffer_l+nl+1:n_buffer_l+2*nl,&
