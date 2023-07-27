@@ -587,7 +587,7 @@ contains
                transpose(dconjg(evs)),dHdk),evs)
         do j = 1,norb_pc
             vels(j,i) = real(Vmat(j,j))/(2*sqrt(abs(eigs(j)))) ! v_x/y/z
-        end do
+        end do 
     end do
 
     end subroutine group_velocity_pc
@@ -897,7 +897,7 @@ contains
                         call eigen_sorting(dyn_pc,eigs_c,evs_pc) 
                         eigs_pc = abs(eigs_c)
                         do i = 1,norb_pc
-                            if(abs(sqrt(E)-sqrt(eigs_pc(i))).lt.1.0d-2) then 
+                            if(abs(sqrt(E)-sqrt(eigs_pc(i))).lt.3.0d-2) then 
                                 idx_temp = minloc(abs(sqrt(E)-sqrt(eigs_pc(:))),1)
                                 kpc_ws = kpc
                                 i_deg_pc = 1
@@ -915,11 +915,11 @@ contains
                         force_constant,pos_pc,&
                         pos_pc_fc_sc,&
                         eigs_pc,evs_pc,v_pc,mass_uc)
-
+            
+            branch_idx_pc = idx_temp 
             i_deg_pc_tot = i_deg_pc + i_deg_pc_tot
             kpc_unfold(i_deg_pc_tot,:) = kpc_ws(:)
             vpc_unfold(i_deg_pc_tot,:) = v_pc(branch_idx_pc,:)
-            branch_idx_pc = idx_temp 
         end if 
     !end if
 

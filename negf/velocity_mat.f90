@@ -1887,8 +1887,6 @@ contains
             l_adv_to_propl(num_prop_l_adv) = i
             UL(:,num_prop_l_adv) = U_adv_L_m(:,i)
             k_z_L_adv(i) = -log_fbz(lambda_adv_L_m(i),a_z_L)
-
-            !write(*,*) i,k_z_L_adv(i)/(2*pi)*7.8177197260163
         end if
     end do
 
