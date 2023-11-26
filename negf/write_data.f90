@@ -172,7 +172,6 @@ do i = 1,n_b
         1000 format(1I5,14e20.10,2I5)
     end if
 end do
-
 close(unit=1)
 end subroutine
 

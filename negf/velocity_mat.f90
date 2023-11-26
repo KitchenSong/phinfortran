@@ -449,7 +449,6 @@ contains
             l_adv_to_propl(num_prop_l_adv) = i
             UL(:,num_prop_l_adv) = U_adv_L_m(:,i)
             k_z_L_adv(i) = -log_fbz(lambda_adv_L_m(i),a_z_L)
-
             !write(*,*) i,k_z_L_adv(i)/(2*pi)*7.8177197260163
         end if
     end do
@@ -854,7 +853,7 @@ contains
 
     end if
 
-    V_ret_L_m = -matmul(matmul(transpose(dconjg(U_ret_L_m)),&
+    V_ret_L_m = matmul(matmul(transpose(dconjg(U_ret_L_m)),&
                 transpose(dconjg(gml))),U_ret_L_m)*i_imag*a_z_L/2.0d0/sqrt(E)
 
     ! we need to correct V_adv_L_m as well
@@ -1385,7 +1384,7 @@ contains
 ! end if
 
 
-    V_adv_R_p = matmul(matmul(transpose(dconjg(U_adv_R_p)),&
+    V_adv_R_p = -matmul(matmul(transpose(dconjg(U_adv_R_p)),&
                 transpose(dconjg(gmr))),U_adv_R_p)*i_imag*a_z_R/2.0d0/sqrt(E)
 
 
@@ -1773,6 +1772,7 @@ contains
     real(kind=8)   :: transl_ns,transr_ns
     real(kind=8) :: reflectr_s, reflectr_ns
     real(kind=8) :: reflectl_s, reflectl_ns
+    real(kind=8) :: ttemp
 
     complex(kind=8) :: F_adv_L_m(nl,nl),lambda_adv_L_m(nl),&
             U_adv_L_m(nl,nl),V_adv_L_m(nl,nl),inv_U_adv_L_m(nl,nl),&
@@ -1861,7 +1861,8 @@ contains
                 ! Ham(n_buffer_l+1:n_buffer_l+nl,&
                 ! n_buffer_l+nl+1:n_buffer_l+2*nl))
 
-    call eigen(F_adv_L_m,lambda_adv_L_m,U_adv_L_m)
+    call eigen_sorting(F_adv_L_m,lambda_adv_L_m,U_adv_L_m)
+!    lambda_adv_L_m = 1.0d0/(lambda_adv_L_m)
 !    call circular_eigen(F_adv_L_m,nl,n_bloch_y,n_bloch_x,reci_uc_l(2,:),latvec_uc_l(2,:),&
 !                 reci_uc_l(1,:),latvec_uc_l(1,:),lambda_adv_L_m_c,U_adv_L_m)
     
@@ -1890,10 +1891,9 @@ contains
         end if
     end do
 
-
     if (path_mode .ne. tags) then
         if(num_prop_l_adv.gt.0)then
-            UL(:,1:num_prop_l_adv) = gram_schmidt(UL(:,1:num_prop_l_adv))
+            !UL(:,1:num_prop_l_adv) = gram_schmidt(UL(:,1:num_prop_l_adv))
             do i = 1,num_prop_l_adv
                 U_adv_L_m(:,l_adv_to_propl(i)) = UL(:,i)
             end do
@@ -2060,7 +2060,7 @@ contains
     weightR_ret = 0.0d0
 
     do i = 1,nl ! i th column (i th eigenvector)
-        if (k_z_L_adv(i).lt.100.0) then
+        if (k_z_L_adv(i).lt.99.0) then
             countL = 1
             do j = 1, n_bloch_x*n_bloch_y
                 kpoint(:) = move_in_ws2(matmul(k_shift(j,:) +&
@@ -2159,7 +2159,7 @@ contains
                    !Ham(n_buffer_l+1:n_buffer_l+nl,&
                    !n_buffer_l+nl+1:n_buffer_l+2*nl))
 
-    call eigen(F_ret_L_m,lambda_ret_L_m,U_ret_L_m)
+    call eigen_sorting(F_ret_L_m,lambda_ret_L_m,U_ret_L_m)
 
     ! the momentum in transport direction for left lead
     k_z_L_ret = 100.0
@@ -2169,13 +2169,11 @@ contains
     allocate(ptl_temp(1),propl_to_l(1))
     j = 0
     do i = 1, nl
-!        write(*,*) abs(lambda_ret_L_m(i))
         if (abs(abs(lambda_ret_L_m(i))-1.0d0) .lt. lambda_eta) then
             k_z_L_ret(i) = -log_fbz(lambda_ret_L_m(i),a_z_L)
             num_prop_l_ret = num_prop_l_ret + 1
             l_ret_to_propl(num_prop_l_ret) = i
             UL(:,num_prop_l_ret) = U_ret_L_m(:,i)
-
             j = j + 1
             if (j.eq.1) then
                 propl_to_l(j) = i
@@ -2194,7 +2192,7 @@ contains
 
     if (path_mode .ne. tags) then
         if(num_prop_l_ret.gt.0) then 
-            UL(:,1:num_prop_l_ret) = gram_schmidt(UL(:,1:num_prop_l_ret))
+            !UL(:,1:num_prop_l_ret) = gram_schmidt(UL(:,1:num_prop_l_ret))
             do i = 1,num_prop_l_ret
                 U_ret_L_m(:,l_ret_to_propl(i)) = UL(:,i)
             end do
@@ -2290,7 +2288,7 @@ contains
 
     end if
 
-    V_ret_L_m = -matmul(matmul(transpose(dconjg(U_ret_L_m)),&
+    V_ret_L_m = matmul(matmul(transpose(dconjg(U_ret_L_m)),&
                 transpose(dconjg(gml))),U_ret_L_m)*i_imag*a_z_L/2.0d0/sqrt(E)
 
     ! we need to correct V_adv_L_m as well
@@ -2349,7 +2347,7 @@ contains
     weightR_adv = 0.0d0
 
     do i = 1,nl ! i th column (i th eigenvector)
-        if (k_z_L_ret(i).lt.100.0) then
+        if (k_z_L_ret(i).lt.99.0) then
             countL = 1
             do j = 1, n_bloch_x*n_bloch_y
                 kpoint(:) = move_in_ws2(matmul(k_shift(j,:) +&
@@ -2429,7 +2427,7 @@ contains
               !norb-n_buffer_r,norb-n_buffer_r-2*nr+1:&
               !  norb-n_buffer_r-nr))
 
-    call eigen(F_ret_R_p,lambda_ret_R_p,U_ret_R_p)
+    call eigen_sorting(F_ret_R_p,lambda_ret_R_p,U_ret_R_p)
 
     ! the momentum in transport direction for left lead
     k_z_R_ret = 100.0
@@ -2442,7 +2440,6 @@ contains
     do i = 1, nr
         if (abs(abs(lambda_ret_R_p(i))-1.0d0) .lt. lambda_eta) then
             k_z_R_ret(i) = log_fbz(lambda_ret_R_p(i),a_z_R)
-            !write(*,*) k_z_R_ret(i)
             num_prop_r_ret    = num_prop_r_ret + 1
             r_ret_to_propr(num_prop_r_ret) = i
             UR(:,num_prop_r_ret) = U_ret_R_p(:,i)
@@ -2465,7 +2462,7 @@ contains
 
     if (path_mode .ne. tags) then
         if (num_prop_r_ret.gt.0) then
-            UR(:,1:num_prop_r_ret) = gram_schmidt(UR(:,1:num_prop_r_ret))
+            !UR(:,1:num_prop_r_ret) = gram_schmidt(UR(:,1:num_prop_r_ret))
             do i = 1,num_prop_r_ret
                 U_ret_R_p(:,r_ret_to_propr(i)) = UR(:,i)
             end do
@@ -2609,7 +2606,7 @@ contains
     V_ret_R_p_half = sqrtm(V_ret_R_p)
 
     do i = 1,nr ! i th column (i th eigenvector)
-        if (k_z_R_ret(i)<100.0) then
+        if (k_z_R_ret(i).lt.99.0) then
             countR = 1
             do j = 1, n_bloch_x*n_bloch_y
                 kpoint(:) = move_in_ws2(matmul(k_shift(j,:) +&
@@ -2694,7 +2691,7 @@ contains
               !norb-n_buffer_r,norb-n_buffer_r-2*nr+1:&
               !  norb-n_buffer_r-nr))
 
-    call eigen(F_adv_R_p,lambda_adv_R_p,U_adv_R_p)
+    call eigen_sorting(F_adv_R_p,lambda_adv_R_p,U_adv_R_p)
 
     ! the momentum in transport direction for left lead
     k_z_R_adv = 100.0
@@ -2712,7 +2709,7 @@ contains
 
     if (path_mode .ne. tags) then
         if (num_prop_r_adv.gt.0) then
-            UR(:,1:num_prop_r_adv) = gram_schmidt(UR(:,1:num_prop_r_adv))
+            ! UR(:,1:num_prop_r_adv) = gram_schmidt(UR(:,1:num_prop_r_adv))
             do i = 1,num_prop_r_adv
                 U_adv_R_p(:,r_adv_to_propr(i)) = UR(:,i)
             end do
@@ -2826,7 +2823,7 @@ contains
 ! end if
 
 
-    V_adv_R_p = matmul(matmul(transpose(dconjg(U_adv_R_p)),&
+    V_adv_R_p = -matmul(matmul(transpose(dconjg(U_adv_R_p)),&
                 transpose(dconjg(gmr))),U_adv_R_p)*i_imag*a_z_R/2.0d0/sqrt(E)
 
 
@@ -2859,7 +2856,7 @@ contains
     V_adv_R_p_half = sqrtm(V_adv_R_p)
 
     do i = 1,nr ! i th column (i th eigenvector)
-        if (k_z_R_adv(i)<100.0) then
+        if (k_z_R_adv(i).lt.99.0) then
             countR = 1
             do j = 1, n_bloch_x*n_bloch_y
                 kpoint(:) = move_in_ws2(matmul(k_shift(j,:) +&
@@ -2957,7 +2954,7 @@ contains
           gr),Hamrv)-&
           matmul(matmul(Hamrv,transpose(dconjg(grm))),&
           transpose(dconjg(Hamrv)))
-    
+         
      !Ham(norb-n_buffer_r-2*nr+1:&
       !norb-n_buffer_r-nr,norb-n_buffer_r-2*nr+1:&
       !norb-n_buffer_r-nr)-&
@@ -3025,16 +3022,16 @@ contains
     count1 = 1
     if (myid.eq.0) then
     do i = 1, nl
-        if (k_z_L_ret(i).lt.100.0) then
+        if (k_z_L_ret(i).lt.99.0) then
             count2 = 1
             do j = 1, nl
-                if (k_z_L_adv(j).lt.100.0) then
+                if (k_z_L_adv(j).lt.99.0) then
                    S(count1,count2) = rll(i,j)
                    count2 = count2 + 1
                 end if
             end do
             do j = 1, nr
-                if (k_z_R_adv(j).lt.100.0) then
+                if (k_z_R_adv(j).lt.99.0) then
                    S(count1,count2) = tlr(i,j)
                    count2 = count2 + 1
                 end if
@@ -3044,16 +3041,16 @@ contains
     end do
 
     do i = 1, nr
-        if (k_z_R_ret(i).lt.100.0) then
+        if (k_z_R_ret(i).lt.99.0) then
             count2 = 1
             do j = 1, nl
-                if (k_z_L_adv(j).lt.100.0) then
+                if (k_z_L_adv(j).lt.99.0) then
                    S(count1,count2) = trl(i,j)
                    count2 = count2 + 1
                 end if
             end do
             do j = 1, nr
-                if (k_z_R_adv(j).lt.100.0) then
+                if (k_z_R_adv(j).lt.99.0) then
                    S(count1,count2) = rrr(i,j)
                    count2 = count2 + 1
                 end if
@@ -3157,6 +3154,8 @@ contains
         call write_specular(sqrt(E),nn,rll,k_xyz_L_ret,k_xyz_L_adv,&
                             k_xyz_L_ret_pc,k_xyz_L_adv_pc,&
                             vel_xyz_L_ret_pc,vel_xyz_L_adv_pc,'left')
+
+
         call write_md(sqrt(E),nn,trl,rll,k_xyz_R_ret,k_xyz_L_ret,k_xyz_L_adv,&
                              k_xyz_R_ret_pc,k_xyz_L_ret_pc,k_xyz_L_adv_pc,&
                              vel_xyz_R_ret_pc,vel_xyz_L_ret_pc,vel_xyz_L_adv_pc,'mdl',&
@@ -3165,9 +3164,6 @@ contains
                              k_xyz_L_ret_pc,k_xyz_R_ret_pc,k_xyz_R_adv_pc,&
                              vel_xyz_L_ret_pc,vel_xyz_R_ret_pc,vel_xyz_R_adv_pc,'mdr',&
                              branch_idx_R_adv_pc,branch_idx_R_adv_uc) ! rightoleft
-
-
-
 
     if (verbosity .eq. 1) then
         call write_md2md(sqrt(E),nn,tlr,k_xyz_L_ret,k_xyz_R_adv,&

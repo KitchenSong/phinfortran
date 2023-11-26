@@ -530,8 +530,7 @@ subroutine get_G_full_tdb(ie,mm,gl,gr,gml,gmr,sl,sr,&
     do i = 1,nlayer
         eyed(i,:,:) = sigma_w(i,ie)*eyemat(layer_list(1))
     end do
- 
-   
+    
     ! index that marks the start of device region
     device_start = n_buffer_l+2*nl
     ! First, left sweep to get left-connected Green function
@@ -555,11 +554,12 @@ subroutine get_G_full_tdb(ie,mm,gl,gr,gml,gmr,sl,sr,&
     !        device_start + layerend(1))
     Es = (E+(E*eta+eta0)*i_imag)*eyemat(layer_list(1))
     ! G_1, 1 with Buttiker self-energy
-    Gblock_NN = inv(Es-H-matmul(matmul(transpose(dconjg(Vcoup)),gl(:,:)),Vcoup)-eyed(1,:,:))
+    ! gl is the advanced left surface GF
+    Gblock_NN = inv(Es-H-matmul(matmul(transpose(dconjg(Vcoup)),transpose(dconjg(gl(:,:)))),Vcoup)-eyed(1,:,:))
     ! left-connected Green function
     GLeft(1,:,:) = Gblock_NN
     ! G_1, 1
-    Gblock_oN = matmul(matmul(gl(:,:),Vcoup),Gblock_NN)
+    Gblock_oN = matmul(matmul(transpose(dconjg(gl(:,:))),Vcoup),Gblock_NN)
     Gblock_NN0 = Gblock_NN
     Gblock_oN0 = Gblock_oN
 
