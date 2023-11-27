@@ -555,11 +555,11 @@ subroutine get_G_full_tdb(ie,mm,gl,gr,gml,gmr,sl,sr,&
     Es = (E+(E*eta+eta0)*i_imag)*eyemat(layer_list(1))
     ! G_1, 1 with Buttiker self-energy
     ! gl is the advanced left surface GF
-    Gblock_NN = inv(Es-H-matmul(matmul(transpose(dconjg(Vcoup)),transpose(dconjg(gl(:,:)))),Vcoup)-eyed(1,:,:))
+    Gblock_NN = inv(Es-H-matmul(matmul(transpose(dconjg(Vcoup)),gl(:,:)),Vcoup)-eyed(1,:,:))
     ! left-connected Green function
     GLeft(1,:,:) = Gblock_NN
     ! G_1, 1
-    Gblock_oN = matmul(matmul(transpose(dconjg(gl(:,:))),Vcoup),Gblock_NN)
+    Gblock_oN = matmul(matmul(gl(:,:),Vcoup),Gblock_NN)
     Gblock_NN0 = Gblock_NN
     Gblock_oN0 = Gblock_oN
 

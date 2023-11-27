@@ -3002,18 +3002,18 @@ contains
         rrr = 0.0d0
         rll = 0.0d0
     end if
-   if (maxval(abs(rrr)).gt.2) then
-        write(*,*) 'rrr'
+    !if (maxval(abs(rrr)).gt.2) then
+    !    write(*,*) 'rrr'
         !write(*,*) maxval(abs(inv_U_adv_R_p))
 
         !write(*,*) maxval(abs(hamr))
         !write(*,*) maxval(abs(grm))
         !write(*,*) maxval(abs(matmul(matmul(transpose(dconjg(Hamrv)),&
         !          gr),Hamrv)))
-        write(*,*) maxval(abs(Q_R))
-        write(*,*) maxval(abs(inv(Q_R)))
+    !    write(*,*) maxval(abs(Q_R))
+    !    write(*,*) maxval(abs(inv(Q_R)))
         !stop
-    end if
+    !end if
 
 
 

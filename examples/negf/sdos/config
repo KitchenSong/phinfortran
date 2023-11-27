@@ -21,7 +21,7 @@
  t_left = 300.0d0
  t_right = 300.0d0
  buttiker = 0
- lifetime = 1
+ lifetime = 0
  update_nbr = 1
 &end
 &setup
